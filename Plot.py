@@ -16,23 +16,22 @@ from basil.dut import Dut
 
 
 class Plot(object):
-    #===========================================================================
-    # def __init__(self, *file):
-    #     self.x = [[] for x in range(0, len(file))]
-    #     self.y = [[] for y in range(0, len(file))]
-    #     self.z = [[] for z in range(0, len(file))]
-    #     self.w = [[] for w in range(0, len(file))]
-    #     self.v = [[] for v in range(0, len(file))]
-    #     self.result =  []
-    #===========================================================================
+    
+    def __init__(self, nf):
+        self.x = []
+        self.y = []
+        self.z = []
+        self.v = []
+        self.w = []
+        self.nf = nf
     
     def Readout(self, Vin, Iin, Vout1, *file):
         nf = len(file)
-        x = [[] for x in range(0, nf)]
-        y = [[] for y in range(0, nf)]
-        z = [[] for z in range(0, nf)]
-        v = [[] for v in range(0, nf)]
-        w = [[] for w in range(0, nf)]
+        self.x = [[] for x in range(0, nf)]
+        self.y = [[] for y in range(0, nf)]
+        self.z = [[] for z in range(0, nf)]
+        self.v = [[] for v in range(0, nf)]
+        self.w = [[] for w in range(0, nf)]
         csvfilearray = [[] for csvfilearray in range(0, nf)]
         csvfile = [None] * nf
         plots = [None] * nf
@@ -50,44 +49,52 @@ class Plot(object):
                     if 'Regulator 2 output voltage[V]' in csvfilearray[0] and 'Regulator 1 load current [A]' in csvfilearray[0]:
                         Iload1 = 3
                         Vout2 = 4
-                        x[i].append(row[Vin])
-                        y[i].append(row[Iin])
-                        z[i].append(row[Vout1])
-                        v[i].append(row[Iload1])
-                        w[i].append(row[Vout2])
+                        self.x[i].append(row[Vin])
+                        self.y[i].append(row[Iin])
+                        self.z[i].append(row[Vout1])
+                        self.v[i].append(row[Iload1])
+                        self.w[i].append(row[Vout2])
                     elif 'Regulator 1 load current [A]' in csvfilearray[0] and 'Regulator 2 output voltage[V]' not in csvfilearray[0]:
                         Iload1 = 3
-                        x[i].append(row[Vin])
-                        y[i].append(row[Iin])
-                        z[i].append(row[Vout1])
-                        v[i].append(row[Iload1])
+                        self.x[i].append(row[Vin])
+                        self.y[i].append(row[Iin])
+                        self.z[i].append(row[Vout1])
+                        self.v[i].append(row[Iload1])
                     elif 'Regulator 1 load current [A]' not in csvfilearray[0] and 'Regulator 2 output voltage[V]' in csvfilearray[0]:
                         Vout2 = 3
-                        x[i].append(row[Vin])
-                        y[i].append(row[Iin])
-                        z[i].append(row[Vout1])
-                        w[i].append(row[Vout2])                    
+                        self.x[i].append(row[Vin])
+                        self.y[i].append(row[Iin])
+                        self.z[i].append(row[Vout1])
+                        self.w[i].append(row[Vout2])                    
                     elif 'Regulator 1 load current [A]' not in csvfilearray[0] and 'Regulator 2 output voltage[V]' not in csvfilearray[0]:
-                        x[i].append(row[Vin])
-                        y[i].append(row[Iin])
-                        z[i].append(row[Vout1])
+                        self.x[i].append(row[Vin])
+                        self.y[i].append(row[Iin])
+                        self.z[i].append(row[Vout1])
                     else:
                         raise RuntimeError('Error occured')
         for i in range(0, nf):
             pass
-        self.result = [x, y, z, v, w]
-        return {'x': x, 'y': y, 'z': z, 'v': v, 'w': w}
+        self.result = [self.x, self.y, self.z, self.v, self.w]
+        #=======================================================================
+        # return {'x': x, 'y': y, 'z': z, 'v': v, 'w': w}
+        #=======================================================================
+        return self.result
         
     def output(self, Vin, Iin, Vout1, *file):
         #print self.result
-        print Plot().Readout(Vin, Iin, Vout1, *file)
-            
-                    
-            
+        print Plot().Readout(Vin, Iin, Vout1, *file)[0][0]
         
-    
-    
-    
+    def Allemalmalen_mann(self, Vin, Iin, Vout1, *file):
+        x = Plot(len(file)).Readout(Vin, Iin, Vout1, *file)[0]
+        y = Plot(len(file)).Readout(Vin, Iin, Vout1, *file)[1]
+        z = Plot(len(file)).Readout(Vin, Iin, Vout1, *file)[2]
+        v = Plot(len(file)).Readout(Vin, Iin, Vout1, *file)[3]
+        w = Plot(len(file)).Readout(Vin, Iin, Vout1, *file)[4]
+        print Plot(len(file)).nf
+        print Plot(len(file)).x
+        
+        
+        
     
     def VrefVout(self, pfad, *file):
         nf = len(file)
@@ -398,14 +405,14 @@ class Plot(object):
         plt.savefig('VMode_LoadReg.pdf')
         
 if __name__ == '__main__':
-    plot = Plot()
+    plot = Plot(None)
     
     #plot.Readout(0, 1, 2, 'CMode_500_mV_LineReg.csv', 'CMode_600_mV_LineReg.csv', 'CMode_660_mV_LineReg.csv', 'CMode_600_500_mV_LoadReg.csv') 
     #print plot.Readout(0 , 1, 2, 'CMode_500_mV_LineReg.csv', 'CMode_600_mV_LineReg.csv', 'CMode_660_mV_LineReg.csv', 'CMode_600_500_mV_LoadReg.csv')
     #print plot.output(plot.Readout, 0 , 1, 2, 'CMode_500_mV_LineReg.csv', 'CMode_600_mV_LineReg.csv', 'CMode_660_mV_LineReg.csv', 'CMode_600_500_mV_LoadReg.csv')
-    print plot.Readout(0 , 1, 2, 'CMode_500_mV_LineReg.csv', 'CMode_600_mV_LineReg.csv', 'CMode_660_mV_LineReg.csv', 'CMode_600_500_mV_LoadReg.csv')
+    #print plot.Readout(0 , 1, 2, 'CMode_500_mV_LineReg.csv', 'CMode_600_mV_LineReg.csv', 'CMode_660_mV_LineReg.csv', 'CMode_600_500_mV_LoadReg.csv')[0][0]
     #print plot.output(0 , 1, 2, 'CMode_500_mV_LineReg.csv', 'CMode_600_mV_LineReg.csv', 'CMode_660_mV_LineReg.csv', 'CMode_600_500_mV_LoadReg.csv')
-    print os.getcwd()
+    plot.Allemalmalen_mann(0, 1, 2, 'CMode_500_mV_LineReg.csv', 'CMode_600_mV_LineReg.csv', 'CMode_660_mV_LineReg.csv', 'CMode_600_500_mV_LoadReg.csv')
     #plot.Lineregulation_CURR(660, 1, 0, 2, 3, 'CMode_500_mV_LineReg.csv')
     #plot.Loadregulation_VOLT('\Load Regulation\Voltage Supply', 500, 1, 'VMode_500_mV_LoadReg.csv', 'VMode_600_mV_LoadReg.csv', 'VMode_660_mV_LoadReg.csv')
     #plot.Loadregulation_CURR('\Load Regulation\Current Supply', 1, 'CMode_500_mV_LoadReg.csv', 'CMode_600_mV_LoadReg.csv', 'CMode_660_mV_LoadReg.csv')
