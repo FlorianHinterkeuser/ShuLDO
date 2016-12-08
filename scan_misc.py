@@ -34,6 +34,8 @@ class Misc(object):
         KEITHLEY INSTRUMENTS INC.,MODEL 2410,1239506,C30   Mar 17 2006 09:29:29/A02  /H/J
         Extract vendor and model id to verify the meter specified in the devices.yaml.
         If needed, the used meters have to be added here (and/or in the devices.yaml).
+        
+        Currently not in use.
         '''
         name_arr = [None]*len(device)
         type_arr = [None]*len(device)
@@ -56,7 +58,6 @@ class Misc(object):
             
         return typ
           
-    #def get_current_reading(self, *device):
     def measure_current(self, *device):
         '''
         Current reading of a Keithley 2410 sourcemeter. Since querying the voltage/current reading results in a tuple,
@@ -65,62 +66,44 @@ class Misc(object):
         '''
         typ = 'keithley_2410'
         current = [None]*len(device)
+        measurement = [None]*len(device)
         if typ == 'keithley_2410':
             for i in range(0, len(device)):
-                #logging.info("Query results in %r" % dut[device[i]].get_current()) #Raw output of a current query. Used to determine which element of the output tuple represents the measured current.
                 current[i] = float(self.dut[device[i]].get_current().split(',')[1])
+                for j in range(0, 100):                                                            #Debouncing to ensure stable measurement
+                    measurement[i] = float(self.dut[device[i]].get_current().split(',')[1])
+                    if abs(abs(measurement[i])/abs(current[i])-1) <= 0.0001:
+                        break
+                    current[i] = measurement[i]
             return current
         else:
             pass
         
-    #===========================================================================            #Not working as intended
-    # def measure_current(self, *device):
-    #     '''
-    #     Measures the current reading of the (source-/multi-)meter. List current[] contains the current measurements for i meters. 
-    #     '''
-    #     time.sleep(self.minimum_delay)
-    #     current = [None]*len(device)
-    #     
-    #     #To-Do: Add a 'measurement delay' to ensure the reading is stable.
-    #     
-    #     for i in range (0, len(device)):
-    #         current[i] = self.get_current_reading(*device)[i]
-    #         if abs(current[i]) > abs(self.max_current) and current[i] < 1e37:
-    #             raise RuntimeError('Maximum current with %e A reached, abort' % current[i])
-    #     return current
-    #===========================================================================
-    
-    #def get_voltage_reading(self, *device):
+
     def measure_voltage(self, *device):
         '''
         See get_current_reading().
         '''
-        #typ = self.get_device_type(device)
         typ = 'keithley_2410'
         voltage = [None]*len(device)
+        measurement = [None]*len(device)
         if typ == 'keithley_2410':
             for i in range(0, len(device)):
                 voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                for j in range(0, 100):
+                    measurement[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    if abs(abs(measurement[i])/abs(voltage[i])-1) <= 0.0001:
+                        break
+                    voltage[i] = measurement[i]
             return voltage
         else:
             pass
         
-    #===========================================================================            #Not working as intended
-    # def measure_voltage(self, *device):
-    #     '''
-    #     See measure_current()
-    #     '''
-    #     time.sleep(self.minimum_delay)
-    #     voltage = [None]*len(device)
-    #     
-    #     #To-Do: Add a 'measurement delay' to ensure the reading is stable.
-    #     
-    #     for i in range(0, len(device)):
-    #         voltage[i] = self.get_voltage_reading(*device)[0]
-    #     return voltage
-    #===========================================================================
     
     def set_source_mode(self, mode, limit1, limit2, limit3, *device):
+        '''
+        Set the sourcing mode of the Sourcemeter. If needed, additional compliance limits (limit4 - limitn) have to be added.
+        '''
         set_mode = [None]*len(device)
         limit = [limit1, limit2, limit3]
         for i in range(0, len(device)):
@@ -155,7 +138,7 @@ class Misc(object):
         return set_mode
     
     def reset(self, *device):
-        '''Resetting the devices used. The sourcing function currently used should be given as 'mode'. Sets the compliance limit to 0 (V // A) and turns the output off.'''
+        '''Resetting the devices used. The sourcing function currently used should be given as 'mode'. Sets the compliance limit to 1 (mV // mA) and turns the output off.'''
         self.data = []
         set_mode = [None]*len(device)
         for i in range(0, len(device)):
@@ -178,22 +161,26 @@ class Misc(object):
 
 if __name__ == '__main__':
     
+    '''
+    Test section
+    '''
+    
     dut = Dut('devices.yaml')
     dut.init()
     print dut['Sourcemeter1'].get_name()
     print dut['Sourcemeter2'].get_name()
-    print dut['Sourcemeter3'].get_name()
+    #print dut['Sourcemeter3'].get_name()
     
     misc = Misc(dut=dut)
     #print misc.get_voltage_reading('Sourcemeter1', 'Sourcemeter2', 'Sourcemeter3')
     #===========================================================================
-    # print misc.measure_voltage('Sourcemeter1', 'Sourcemeter2', 'Sourcemeter3')
+    print misc.measure_voltage('Sourcemeter1')
     #print misc.measure_current('Sourcemeter1')
     # print misc.get_device_type('Sourcemeter1', 'Sourcemeter2', 'Sourcemeter3')
     # print misc.set_source_mode('VOLT',  .2,  .2, .2, 'Sourcemeter1', 'Sourcemeter3')
     # print misc.set_source_mode('CURR',  1,  1,  1, 'Sourcemeter2')
     #===========================================================================
-    print misc.reset('Sourcemeter1', 'Sourcemeter2', 'Sourcemeter3')
+    #print misc.reset('Sourcemeter1', 'Sourcemeter2', 'Sourcemeter3')
     #dut['Sourcemeter3'].on()
     #print misc.set_source_mode('CURR', 2, 1.5, 1.5, 'Sourcemeter1', 'Sourcemeter2')
 
