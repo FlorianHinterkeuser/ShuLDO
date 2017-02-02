@@ -22,11 +22,6 @@ class Plot(object):
     dir = os.getcwd()
     
     def __init__(self, nf):
-        self.x = [[]]
-        self.y = [[]]
-        self.z = [[]]
-        self.v = [[]]
-        self.w = [[]]
         self.V_in = []
         self.V_out1 = []
         self.V_out2 = []
@@ -46,8 +41,6 @@ class Plot(object):
         csvfilearray = [[] for csvfilearray in range(0, nf)]
         csvfile = [None] * nf
         plots = [None] * nf
-
-        
         
         for i in range(0, nf):
             csvfile[i] = 'csvfile' + str(i)
@@ -55,7 +48,6 @@ class Plot(object):
         for i in range(0,nf):
             with open(file[i], 'rb') as csvfile[i]:
                 plots[i] = csv.reader(csvfile[i], delimiter=',')
-                
                 header = next(plots[i]) 
                 
                 for row in plots[i]:
@@ -89,11 +81,9 @@ class Plot(object):
         for i in range(0, nf):
             pass
         self.result = [self.x, self.y, self.z, self.v, self.w]
-        
         return self.result
         
     def Create_Axes(self, Vin, Iin, Vout1, file):
-        
         
         self.Readout(Vin, Iin, Vout1, file)                                     #L2C Issue
         self.V_in = self.result[0]
@@ -101,9 +91,7 @@ class Plot(object):
         self.V_out1 = self.result[2]
         self.I_load1 = self.result[3]
         self.V_out2 = self.result[4]
-        self.color = [None]*len(file)
-
-        
+        self.color = [None]*len(file)        
         
         Output1 = self.V_out1
         for i in range(0, len(file)):
@@ -112,34 +100,25 @@ class Plot(object):
                     self.V_out1[i][j] = float(self.V_out1[i][j])/1000
                     if float(self.V_out1[i][j]) < 1:
                         raise RuntimeError
-                    
         
         for i in range(0, len(file)):
             self.scale = int(len(self.plasma)/len(file))*i
-            self.color[i] = self.plasma[self.scale]
-        
-            
-
-            
-            
+            self.color[i] = self.plasma[self.scale]          
 
 
-    def LineReg_Curr_Irradiated(self, mode, *files):
+    def LineReg_Curr_Irradiated(self, mode):
         path = '\Messungen\Line Regulation' + str(mode)
         os.chdir(Plot.dir + path)
-        
         file = []
         dirList = os.listdir('.')
-        
+
         for sFile in dirList:
             if sFile.find('.csv') == -1:
                 continue
             file.append(sFile)
         file = tuple(file) 
         
-        
         self.Create_Axes(Vin = 0, Iin = 1, Vout1 = 3, file=file)
-        
         
         for i in range(0, len(file)):
             fig1 = plt.figure(1)
@@ -184,7 +163,6 @@ class Plot(object):
         axins1 = zoomed_inset_axes(ax1, 2, bbox_to_anchor=(267,167))
         axins2 = zoomed_inset_axes(ax2, 2, bbox_to_anchor=(307,167))
         
-        
         axins1.grid(False)
         axins2.grid(False)
         axins1.set_xlim(0.35,0.45)
@@ -197,20 +175,19 @@ class Plot(object):
             axins2.plot(self.I_in[i], self.V_out1[i], color = self.color[i], alpha=0.8)
         mark_inset(ax1, axins1, 2,1, fc="none", ec= "0")
         mark_inset(ax2, axins2, 2, 1, fc="none", ec="0")
-        
-        
-        
+                
         plt.figure(1).savefig("IinVout2.pdf")
         plt.figure(2).savefig("IinVout1.pdf")
         plt.figure(3).savefig("InVin.pdf")
         plt.close('all')
         
+    def LineReg_live(self, file_name):
+        print "Pass!"
+        pass
         
-
     def LoadReg_Curr_Irradiated(self, mode, *files):
         path = '\Messungen\Load Regulation' + str(mode)
         os.chdir(Plot.dir + path)
-        
         file = []
         dirList = os.listdir('.')
         
@@ -218,10 +195,7 @@ class Plot(object):
             if sFile.find('.csv') == -1:
                 continue
             file.append(sFile)
-        file = tuple(file) 
-        
-        print sorted(file)
-            
+        file = tuple(file)            
             
         label = [None] * len(file)
         filename = [None] * len(file)
@@ -230,9 +204,6 @@ class Plot(object):
             filename[i] = file[i].split("_")[1]
             dose[i] = filename[i].split(".c")[0]
             label[i] = dose[i]
-                
-               
-        
         
         self.Create_Axes(Vin = 3, Iin= 4, Vout1= 5, file = file)
         
@@ -269,14 +240,13 @@ class Plot(object):
         cbar2.set_label('Total Dose [Mrad]', rotation = 270, labelpad = 20)
         cbar3=fig3.colorbar(sm)        
         cbar3.set_label('Total Dose [Mrad]', rotation = 270, labelpad = 20)
-        plt.show()
+        
+        plt.figure(1).savefig("IloadvsVout2.pdf")
+        plt.figure(2).savefig("IloadvsVout1.pdf")
+        plt.figure(3).savefig("IloadvsVin.pdf")
+        #plt.show()
         plt.close('all')
 
-
-        
-        
-        
-    
     def VrefVout(self, pfad, *file):
         nf = len(file)
         x = [[] for x in range(0, nf)]
@@ -314,7 +284,158 @@ class Plot(object):
         plt.axis([0.4,0.66,0.8,1.32])
         plt.tight_layout()
         plt.savefig('VrefVout.pdf')
+        
+    def LivePlot(self, file_name):
+        #plot.LineReg_live(file_name)   
+        #print os.getcwd()
+        file = []
+        header = []
+        csvfilearray = []
+        
+        dirList = os.listdir('.')
+        for sFile in dirList:
+            if sFile.find('.csv') == -1:
+                continue
+            file.append(sFile)
+        file = tuple(file)   
+        print file
+        
+        with open(file_name, 'rb') as csvfile:
+            plots = csv.reader(csvfile, delimiter=',')
+            header = next(plots)
+            for row in plots:
+                csvfilearray.append(row)
 
+        
+        for i in range(0, len(header)):
+            if "Input voltage" in header[i]:
+                self.Vin = i
+                logging.info("Input voltage in column %r" % i)
+            elif "output voltage" in header[i] and "1" in header[i]:                    #Beware: lower case "o" in output voltage!
+                self.Vout1 = i
+                logging.info("Output voltage 1 in column %r" % i)
+            elif "output voltage" in header[i] and "2" in header[i]:
+                self.Vout2 = i
+                logging.info("Output voltage 2 in column %r" % i)
+            elif "load current" in header[i]:
+                self.Iload1 = i
+                logging.info("Load current in column %r" % i)
+            elif "Input current" in header[i]:
+                self.Iin = i
+                logging.info("Input current in column %r" % i)
+                
+        self.V_in = [None]*len(csvfilearray) 
+        self.I_in = [None]*len(csvfilearray) 
+        self.V_out1 = [None]*len(csvfilearray) 
+        self.V_out2 = [None]*len(csvfilearray) 
+        self.I_load1 = [None]*len(csvfilearray) 
+        load = [None] * len(csvfilearray)
+        
+        
+        for i in range(0, len(csvfilearray)):
+            try:
+                self.V_in[i] = csvfilearray[i][self.Vin]
+                self.I_in[i] = csvfilearray[i][self.Iin]
+                self.V_out1[i] = csvfilearray[i][self.Vout1]
+                self.V_out2[i] = csvfilearray[i][self.Vout2]
+                self.I_load1[i] = csvfilearray[i][self.Iload1]
+            except AttributeError:
+                pass
+        
+
+        
+        if "line" in file_name or "Line" in file_name:
+            fig1=plt.figure(1)
+            plt.grid(True)
+            plt.plot(self.I_in, self.V_out1, color = self.plasma[100])
+            plt.xlabel("Input Current [A]")
+            plt.ylabel("Regulator 1 Output Voltage [V]")
+            
+            fig2 = plt.figure(2)
+            plt.grid(True)
+            plt.plot(self.I_in, self.V_in, color = self.plasma[100])
+            plt.xlabel("Input Current [A]")
+            plt.ylabel("Regulator 2 Output Voltage [V]")
+            plt.show()
+            
+            pass
+        elif "load" in file_name or "Load" in file_name:
+            fig1=plt.figure(1)
+            plt.grid(True)
+            plt.plot(self.I_load1, self.V_out1, color = self.plasma[100])
+            plt.xlabel("Load Current [A]")
+            plt.ylabel("Regulator 1 Output Voltage [V]")
+            plt.xlim(float(self.I_load1[0]), float(self.I_load1[-1]))
+            
+            fig2=plt.figure(2)
+            plt.grid(True)
+            plt.plot(self.I_load1, self.V_out2, color = self.plasma[100])
+            plt.xlabel("Load Current [A]")
+            plt.ylabel("Regulator 2 Output Voltage [V]")
+            plt.xlim(float(self.I_load1[0]), float(self.I_load1[-1]))
+            
+            fig3=plt.figure(3)
+            plt.grid(True)
+            plt.plot(self.I_load1, self.V_in, color = self.plasma[100])
+            plt.xlabel("Load Current [A]")
+            plt.ylabel("Input Voltage [V]")
+            plt.xlim(float(self.I_load1[0]), float(self.I_load1[-1]))
+            
+            plt.show()
+            plt.close("all")
+
+    def DoseVoltage(self, mode, Last):
+        path = '\Messungen\Load Regulation' + str(mode)
+        os.chdir(Plot.dir + path)
+        file = []
+        dirList = os.listdir('.')
+                
+        for sFile in dirList:
+            if sFile.find('.csv') == -1:
+                continue
+            file.append(sFile)
+            
+        file = tuple(file)    
+        dose = [None] * len(file) ; label= [None] * len(file) ; filename= [None] * len(file) 
+        header, csvfilearray, Iload, Vin, TotDose, Vout1, Vout2, Iin = [],[],[],[],[],[],[],[]
+        
+        for i in range(0, len(file)):
+            filename[i] = file[i].split("_")[1]
+            dose[i] = filename[i].split("Mrad")[0]
+            label[i] = dose[i]
+
+        for i in range(0, len(file)):
+            csvfilearray = []
+            with open(file[i], 'rb') as csvfile:
+                plot = csv.reader(csvfile, delimiter=',')
+                header = next(plot)
+                for row in plot:
+                    csvfilearray.append(row)
+            for j in range(0,len(header)):
+                if "load" in header[j] and "set" in header[j]:
+                    load = j
+                if "out" in header[j] and "1" in header[j]:
+                    out1 = j
+                if "out" in header[j] and "2" in header[j]:
+                    out2 = j
+                if "In" in header[j] and "[V]" in header[j]:
+                    vinput = j
+                if "In" in header[j] and "[A]" in header[j]:
+                    iinput = j
+                
+            for column in csvfilearray:
+                
+                if str(Last) in column[load]:
+                    Iload.append(column[load])
+                    TotDose.append(dose[i])
+                    Vout1.append(column[out1])
+                    Vout2.append(column[out2])
+                    Vin.append(column[vinput])
+        plt.plot(dose, Vout1)
+        plt.plot(dose, Vout2)
+        plt.plot(dose, Vin)
+        plt.grid(True)
+        plt.show()
 
 
         
@@ -322,7 +443,7 @@ if __name__ == '__main__':
     plot = Plot(None)
     
     #plot.LineReg_Curr_Irradiated('\Current Supply')
-    plot.LoadReg_Curr_Irradiated('\Current Supply')
-
-
+    #plot.LoadReg_Curr_Irradiated('\Current Supply')
+    #plot.LivePlot('CMode_600_500_mV_LoadReg.csv')
+    plot.DoseVoltage('\Current Supply', 0.21)
     
