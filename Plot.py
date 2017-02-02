@@ -384,8 +384,8 @@ class Plot(object):
             plt.show()
             plt.close("all")
 
-    def DoseVoltage(self, mode, Last):
-        path = '\Messungen\Load Regulation' + str(mode)
+    def DoseVoltage(self, mode, Last, eingang):
+        path = '\Messungen\\' + str(mode) + '\Current Supply'
         os.chdir(Plot.dir + path)
         file = []
         dirList = os.listdir('.')
@@ -414,29 +414,45 @@ class Plot(object):
             for j in range(0,len(header)):
                 if "load" in header[j] and "set" in header[j]:
                     load = j
+                    print 1
                 if "out" in header[j] and "1" in header[j]:
                     out1 = j
+                    print 2
                 if "out" in header[j] and "2" in header[j]:
                     out2 = j
+                    print 3
                 if "In" in header[j] and "[V]" in header[j]:
                     vinput = j
-                if "In" in header[j] and "[A]" in header[j]:
+                    print 4
+                if "In" in header[j] and "current" in header[j]:
                     iinput = j
-                
-            for column in csvfilearray:
-                
-                if str(Last) in column[load]:
-                    Iload.append(column[load])
-                    TotDose.append(dose[i])
-                    Vout1.append(column[out1])
-                    Vout2.append(column[out2])
-                    Vin.append(column[vinput])
-        plt.plot(dose, Vout1)
-        plt.plot(dose, Vout2)
-        plt.plot(dose, Vin)
-        plt.grid(True)
-        plt.show()
-
+                    print 5
+            
+            print "Line" in file[i]
+            
+            if "Load" in file[i]:
+                for column in csvfilearray:
+                    if str(Last) in column[load]:
+                        Iload.append(column[load])
+                        TotDose.append(dose[i])
+                        Vout1.append(column[out1])
+                        Vout2.append(column[out2])
+                        Vin.append(column[vinput])
+            if "Line" in file[i]:
+                for column in csvfilearray:
+                    if str(eingang) in column[iinput]:
+                        Vin.append(column[vinput])
+                        Vout1.append(column[out1])
+                        Vout2.append(column[out2])
+                        TotDose.append(dose[i])
+        try:
+            plt.plot(dose, Vout1)
+            plt.plot(dose, Vout2)
+            plt.plot(dose, Vin)
+            plt.grid(True)
+            plt.show()
+        except NameError:
+            pass
 
         
 if __name__ == '__main__':
@@ -445,5 +461,6 @@ if __name__ == '__main__':
     #plot.LineReg_Curr_Irradiated('\Current Supply')
     #plot.LoadReg_Curr_Irradiated('\Current Supply')
     #plot.LivePlot('CMode_600_500_mV_LoadReg.csv')
-    plot.DoseVoltage('\Current Supply', 0.21)
+    plot.DoseVoltage('Line Regulation', 0.21, 0.46)
+    plot.DoseVoltage('Load Regulation', 0.21, 0.46)
     
