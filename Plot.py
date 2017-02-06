@@ -126,7 +126,7 @@ class Plot(object):
             plt.plot(self.I_in[i], self.V_out2[i], color = self.color[i], alpha=0.8)
             plt.grid(True)
             plt.xlabel("Input Current [A]")
-            plt.ylabel("Regulator 2 Output Voltage [V]")
+            plt.ylabel("Output Voltage [V]")
             plt.title("Iin vs. Vout2")
             plt.axis([0.,0.7,0.,1.25])
             
@@ -135,7 +135,7 @@ class Plot(object):
             plt.plot(self.I_in[i], self.V_out1[i], color = self.color[i], alpha=0.8)
             plt.grid(True)
             plt.xlabel("Input current [A]")
-            plt.ylabel("Regulator 1 output voltage [V]")
+            plt.ylabel("Output voltage [V]")
             plt.title("Iin vs. Vout1")
             plt.axis([0,0.7,0,1.25])
             
@@ -146,16 +146,39 @@ class Plot(object):
             plt.xlabel("Input current [A]")
             plt.ylabel("Input voltage [V]")
             plt.title("Iin vs. Vin")
-            plt.axis([0,0.7,0,1.9])
+            plt.axis([0,0.7,0.25,1.9])
+            
+            fig4 = plt.figure(4)
+            ax4 = fig4
+            plt.plot(self.V_in[i], self.V_out1[i], color = self.color[i], alpha=0.8)
+            plt.grid(True)
+            plt.xlabel("Input Voltage [V]")
+            plt.ylabel("Output Voltage [V]")
+            plt.title("Voltage Dropout")
+            plt.axis([float(self.V_in[i][0]), float(self.V_in[i][-1]), 0, 1.25])
+            
+            fig5 = plt.figure(5)
+            ax5 = fig5
+            plt.plot(self.V_in[i], self.V_out2[i], color = self.color[i], alpha=0.8)
+            plt.grid(True)
+            plt.xlabel("Input Voltage [V]")
+            plt.ylabel("Output Voltage [V]")
+            plt.title("Voltage Dropout")
+            #plt.axis([float(self.V_in[i][0]), float(self.V_in[i][-1]), 0, 1.25])
+            
             
         sm = plt.cm.ScalarMappable(cmap = 'plasma', norm = plt.Normalize(vmin=0, vmax=500))
         sm._A = []
         cbar1= fig1.colorbar(sm)
-        cbar1.set_label('Total Dose [Mrad]', rotation = 270, labelpad=20)
+        cbar1.set_label('Integrated Dose [Mrad]', rotation = 270, labelpad=20)
         cbar2=fig2.colorbar(sm)
-        cbar2.set_label('Total Dose [Mrad]', rotation = 270, labelpad = 20)
+        cbar2.set_label('Integrated Dose [Mrad]', rotation = 270, labelpad = 20)
         cbar3=fig3.colorbar(sm)        
-        cbar3.set_label('Total Dose [Mrad]', rotation = 270, labelpad = 20)
+        cbar3.set_label('Integrated Dose [Mrad]', rotation = 270, labelpad = 20)
+        cbar4=fig4.colorbar(sm)        
+        cbar4.set_label('Integrated Dose [Mrad]', rotation = 270, labelpad = 20)
+        cbar5=fig5.colorbar(sm)        
+        cbar5.set_label('Integrated Dose [Mrad]', rotation = 270, labelpad = 20)
         
         ax1 = fig1.add_subplot(111)                                                     #Setting up subplots for zooming
         ax2 = fig2.add_subplot(111)
@@ -179,11 +202,10 @@ class Plot(object):
         plt.figure(1).savefig("IinVout2.pdf")
         plt.figure(2).savefig("IinVout1.pdf")
         plt.figure(3).savefig("InVin.pdf")
+        plt.figure(4).savefig("Dropout.pdf")
+        plt.figure(5).savefig("Dropout2.pdf")
         plt.close('all')
         
-    def LineReg_live(self, file_name):
-        print "Pass!"
-        pass
         
     def LoadReg_Curr_Irradiated(self, mode, *files):
         path = '\Messungen\Load Regulation' + str(mode)
@@ -212,34 +234,34 @@ class Plot(object):
             fig1 = plt.figure(1)
             plt.plot(self.I_load1[i], self.V_out2[i], label = label[i], alpha=0.8, color = self.color[i])
             plt.xlabel('Load current [A]')
-            plt.ylabel("Voltage [V]")
+            plt.ylabel("Output Voltage [V]")
             plt.grid(True)
-            plt.title("Vout2 vs. Iload")
+            plt.title("Iload vs. Vout2")
             plt.axis([0,0.42,1.19,1.205]) 
                    
             fig2 = plt.figure(2)
             plt.plot(self.I_load1[i], self.V_out1[i], label = label[i], alpha=0.8, color = self.color[i])
-            plt.xlabel('Load current [A]')
-            plt.ylabel("Voltage [V]")
+            plt.xlabel("Load current [A]")
+            plt.ylabel("Output oltage [V]")
             plt.grid(True)
-            plt.title("Vout1 vs. Iload")
+            plt.title("Iload vs. Vout1")
             plt.axis([0,0.42,1.16,1.21])
              
             fig3 = plt.figure(3)
             plt.plot(self.I_load1[i], self.V_in[i], label = label[i], alpha=0.8, color = self.color[i])
             plt.xlabel('Load current [A]')
-            plt.ylabel("Voltage [V]")
+            plt.ylabel("Input Voltage [V]")
             plt.grid(True)
-            plt.title("Vin vs. Iload")
+            plt.title("Iload vs. Vin")
             plt.axis([0,0.42,1.3,1.5])
         sm = plt.cm.ScalarMappable(cmap = 'plasma', norm = plt.Normalize(vmin=0, vmax=500))
         sm._A = []
         cbar1= fig1.colorbar(sm)
-        cbar1.set_label('Total Dose [Mrad]', rotation = 270, labelpad = 20)
+        cbar1.set_label('Integrated Dose [Mrad]', rotation = 270, labelpad = 20)
         cbar2=fig2.colorbar(sm)
-        cbar2.set_label('Total Dose [Mrad]', rotation = 270, labelpad = 20)
+        cbar2.set_label('Integrated Dose [Mrad]', rotation = 270, labelpad = 20)
         cbar3=fig3.colorbar(sm)        
-        cbar3.set_label('Total Dose [Mrad]', rotation = 270, labelpad = 20)
+        cbar3.set_label('Integrated Dose [Mrad]', rotation = 270, labelpad = 20)
         
         plt.figure(1).savefig("IloadvsVout2.pdf")
         plt.figure(2).savefig("IloadvsVout1.pdf")
@@ -254,7 +276,7 @@ class Plot(object):
         csvfile = [None]*len(file)
         plots = [None]*len(file)
         label = ['Current Supply Mode', 'Voltage Supply Mode']
-        color = ['r', 'b']
+        colors = [self.plasma[100], self.plasma[200]]
 
         
         for i in range(0, nf):
@@ -275,17 +297,17 @@ class Plot(object):
                     x[i].append(row[0])
                     y[i].append(row[1])
  
-            plt.plot(x[i], y[i], color[i], label = label[i])
+            plt.plot(x[i], y[i],color = colors[i], label = label[i])
         plt.legend(loc='lower right')
-        plt.xlabel('Reference voltage [V]')
-        plt.ylabel('Output voltage [V]')
+        plt.xlabel('Reference Voltage [V]')
+        plt.ylabel('Output Voltage [V]')
         plt.title('Vref vs Vout')
         plt.grid()
         plt.axis([0.4,0.66,0.8,1.32])
         plt.tight_layout()
         plt.savefig('VrefVout.pdf')
         
-    def LivePlot(self, file_name):
+    def LivePlot(self, file_name, ):
         #plot.LineReg_live(file_name)   
         #print os.getcwd()
         file = []
@@ -333,13 +355,19 @@ class Plot(object):
         
         
         for i in range(0, len(csvfilearray)):
+            
+            self.V_in[i] = csvfilearray[i][self.Vin]
+            self.I_in[i] = csvfilearray[i][self.Iin]
+            self.V_out1[i] = csvfilearray[i][self.Vout1]
             try:
-                self.V_in[i] = csvfilearray[i][self.Vin]
-                self.I_in[i] = csvfilearray[i][self.Iin]
-                self.V_out1[i] = csvfilearray[i][self.Vout1]
                 self.V_out2[i] = csvfilearray[i][self.Vout2]
+            except:
+                print "error"
+            try:
                 self.I_load1[i] = csvfilearray[i][self.Iload1]
             except AttributeError:
+                pass
+            except IndexError:
                 pass
         
 
@@ -347,42 +375,72 @@ class Plot(object):
         if "line" in file_name or "Line" in file_name:
             fig1=plt.figure(1)
             plt.grid(True)
-            plt.plot(self.I_in, self.V_out1, color = self.plasma[100])
+            plt.plot(self.I_in, self.V_in, color = self.plasma[200], label = "Vin")
             plt.xlabel("Input Current [A]")
-            plt.ylabel("Regulator 1 Output Voltage [V]")
+            plt.ylabel("Voltage [V]")
+            plt.title("IV-Curve, two parallel ShuLDOs")         
             
-            fig2 = plt.figure(2)
             plt.grid(True)
-            plt.plot(self.I_in, self.V_in, color = self.plasma[100])
+            plt.plot(self.I_in, self.V_out1, color = self.plasma[100], label = "Vout_1")
             plt.xlabel("Input Current [A]")
-            plt.ylabel("Regulator 2 Output Voltage [V]")
+            plt.ylabel("Voltage [V]")
+            plt.axis([0,1,0,1.5])
+            #plt.figure(1).savefig("IinVout1.pdf")
+
+            
+            try:
+                plt.grid(True)
+                plt.plot(self.I_in, self.V_out2, color = self.plasma[150], label = "Vout_2")
+            except:
+                print "no Vout2"
+            plt.legend(loc=4)
+            plt.figure(1).savefig("IV_ShuLDO.pdf")
+            
+            
+            fig3 = plt.figure(3)
+            plt.grid(True)
+            plt.plot(self.V_in, self.V_out1, color = self.plasma[100])
+            plt.xlabel("Input Voltage [V]")
+            plt.ylabel("Output Voltage [V]")
+            plt.title("Dropout Voltage")
+            plt.axis([0,2,0,1.2])
+            plt.figure(3).savefig("Dropout.pdf")
+            
+            
             plt.show()
             
-            pass
         elif "load" in file_name or "Load" in file_name:
             fig1=plt.figure(1)
             plt.grid(True)
-            plt.plot(self.I_load1, self.V_out1, color = self.plasma[100])
+            plt.plot(self.I_load1, self.V_out1, color = self.plasma[100], label = "Vout_1")
             plt.xlabel("Load Current [A]")
-            plt.ylabel("Regulator 1 Output Voltage [V]")
+            plt.ylabel("Output Voltage [V]")
+            plt.title("Iload vs. Vout1")
             plt.xlim(float(self.I_load1[0]), float(self.I_load1[-1]))
+            plt.figure(1).savefig("IloadVout1.pdf")
             
             fig2=plt.figure(2)
             plt.grid(True)
             plt.plot(self.I_load1, self.V_out2, color = self.plasma[100])
             plt.xlabel("Load Current [A]")
-            plt.ylabel("Regulator 2 Output Voltage [V]")
+            plt.ylabel("Output Voltage [V]")
+            plt.title("Iload vs. Vout2")
             plt.xlim(float(self.I_load1[0]), float(self.I_load1[-1]))
+            plt.figure(2).savefig("IloadVout2.pdf")
             
-            fig3=plt.figure(3)
+            fig1=plt.figure(1)
             plt.grid(True)
-            plt.plot(self.I_load1, self.V_in, color = self.plasma[100])
+            plt.plot(self.I_load1, self.V_in, color = self.plasma[200], label = "Vin")
             plt.xlabel("Load Current [A]")
-            plt.ylabel("Input Voltage [V]")
+            plt.ylabel("Voltage [V]")
+            plt.title("Iload vs. Vin")
             plt.xlim(float(self.I_load1[0]), float(self.I_load1[-1]))
+            plt.axis([0,-0.5,1.1,1.5])
+            plt.legend(loc=3)
+            plt.figure(1).savefig("Iload1Vin.pdf")
             
             plt.show()
-            plt.close("all")
+        plt.close("all")
 
     def DoseVoltage(self, mode, Last, eingang):
         path = '\Messungen\\' + str(mode) + '\Current Supply'
@@ -412,7 +470,7 @@ class Plot(object):
                 for row in plot:
                     csvfilearray.append(row)
             for j in range(0,len(header)):
-                if "load" in header[j] and "set" in header[j]:
+                if "load" in header[j] and "Set" in header[j]:
                     load = j
                     print 1
                 if "out" in header[j] and "1" in header[j]:
@@ -446,10 +504,39 @@ class Plot(object):
                         Vout2.append(column[out2])
                         TotDose.append(dose[i])
         try:
-            plt.plot(dose, Vout1)
-            plt.plot(dose, Vout2)
-            plt.plot(dose, Vin)
+            plt.figure(1)
+            plt.semilogx(dose, Vout1, color = self.plasma[100])
             plt.grid(True)
+            plt.xlabel("Integrated Dose [MRad]")
+            plt.ylabel("Output Voltage [V]")
+            plt.title("Dose vs. Vout1")
+            plt.xlim(float(dose[0]), float(dose[-1]))
+            
+            plt.figure(2)
+            plt.semilogx(dose, Vout2, color = self.plasma[100])
+            plt.grid(True)
+            plt.xlabel("Integrated Dose [MRad]")
+            plt.ylabel("Output Voltage [V]")
+            plt.title("Dose vs. Vout2")
+            plt.xlim(float(dose[0]), float(dose[-1]))
+            
+            plt.figure(3)
+            plt.semilogx(dose, Vin, color = self.plasma[100])
+            plt.grid(True)
+            plt.xlabel("Integrated Dose [MRad]")
+            plt.ylabel("Input Voltage [V]")
+            plt.title("Dose vs. Vin")
+            plt.xlim(float(dose[0]), float(dose[-1]))
+            
+            
+            if len(Iload) > 2:
+                plt.figure(1).savefig("DosevVout1_Load.pdf")
+                plt.figure(2).savefig("DosevVout2_Load.pdf")
+                plt.figure(3).savefig("DosevVin_Load.pdf")
+            else:
+                plt.figure(1).savefig("DosevVout1_Line.pdf")
+                plt.figure(2).savefig("DosevVout2_Line.pdf")
+                plt.figure(3).savefig("DosevVin_Line.pdf")
             plt.show()
         except NameError:
             pass
@@ -458,9 +545,13 @@ class Plot(object):
 if __name__ == '__main__':
     plot = Plot(None)
     
+    plot.VrefVout('\\VrefVout', "VrefVout_Curr.csv", "VrefVout_Volt.csv")
     #plot.LineReg_Curr_Irradiated('\Current Supply')
     #plot.LoadReg_Curr_Irradiated('\Current Supply')
-    #plot.LivePlot('CMode_600_500_mV_LoadReg.csv')
-    plot.DoseVoltage('Line Regulation', 0.21, 0.46)
-    plot.DoseVoltage('Load Regulation', 0.21, 0.46)
+    #plot.LivePlot('CMode_600_500_mV_LoadReg_parallel.csv')
+    #plot.LivePlot('CMode_600_mV_LineReg.csv')
+    #plot.LivePlot("CMode_600_500_mV_LineReg_parallel.csv")
+    #plot.LivePlot("CMode_600_mV_LoadReg.csv")
+    #plot.DoseVoltage('Line Regulation', 0.21, 0.46)
+    #plot.DoseVoltage('Load Regulation', 0.21, 0.46)
     
