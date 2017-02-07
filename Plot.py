@@ -123,7 +123,7 @@ class Plot(object):
         for i in range(0, len(file)):
             fig1 = plt.figure(1)
             ax1=fig1
-            plt.plot(self.I_in[i], self.V_out2[i], color = self.color[i], alpha=0.8)
+            plt.plot(self.I_in[i], self.V_out2[i],".-", color = self.color[i], alpha=0.8)
             plt.grid(True)
             plt.xlabel("Input Current [A]")
             plt.ylabel("Output Voltage [V]")
@@ -132,7 +132,7 @@ class Plot(object):
             
             fig2 = plt.figure(2)
             ax2=fig2
-            plt.plot(self.I_in[i], self.V_out1[i], color = self.color[i], alpha=0.8)
+            plt.plot(self.I_in[i], self.V_out1[i],".-", color = self.color[i], alpha=0.8)
             plt.grid(True)
             plt.xlabel("Input current [A]")
             plt.ylabel("Output voltage [V]")
@@ -141,7 +141,7 @@ class Plot(object):
             
             fig3 = plt.figure(3)
             ax3=fig3
-            plt.plot(self.I_in[i], self.V_in[i], color = self.color[i], alpha=0.8)
+            plt.plot(self.I_in[i], self.V_in[i],".-", color = self.color[i], alpha=0.8)
             plt.grid(True)
             plt.xlabel("Input current [A]")
             plt.ylabel("Input voltage [V]")
@@ -150,7 +150,7 @@ class Plot(object):
             
             fig4 = plt.figure(4)
             ax4 = fig4
-            plt.plot(self.V_in[i], self.V_out1[i], color = self.color[i], alpha=0.8)
+            plt.plot(self.V_in[i], self.V_out1[i],".-", color = self.color[i], alpha=0.8)
             plt.grid(True)
             plt.xlabel("Input Voltage [V]")
             plt.ylabel("Output Voltage [V]")
@@ -159,7 +159,7 @@ class Plot(object):
             
             fig5 = plt.figure(5)
             ax5 = fig5
-            plt.plot(self.V_in[i], self.V_out2[i], color = self.color[i], alpha=0.8)
+            plt.plot(self.V_in[i], self.V_out2[i],".-", color = self.color[i], alpha=0.8)
             plt.grid(True)
             plt.xlabel("Input Voltage [V]")
             plt.ylabel("Output Voltage [V]")
@@ -232,7 +232,7 @@ class Plot(object):
         for i in range(0, len(file)):            
             
             fig1 = plt.figure(1)
-            plt.plot(self.I_load1[i], self.V_out2[i], label = label[i], alpha=0.8, color = self.color[i])
+            plt.plot(self.I_load1[i], self.V_out2[i],".-", label = label[i], alpha=0.8, color = self.color[i])
             plt.xlabel('Load current [A]')
             plt.ylabel("Output Voltage [V]")
             plt.grid(True)
@@ -240,7 +240,7 @@ class Plot(object):
             plt.axis([0,0.42,1.19,1.205]) 
                    
             fig2 = plt.figure(2)
-            plt.plot(self.I_load1[i], self.V_out1[i], label = label[i], alpha=0.8, color = self.color[i])
+            plt.plot(self.I_load1[i], self.V_out1[i],".-", label = label[i], alpha=0.8, color = self.color[i])
             plt.xlabel("Load current [A]")
             plt.ylabel("Output oltage [V]")
             plt.grid(True)
@@ -248,7 +248,7 @@ class Plot(object):
             plt.axis([0,0.42,1.16,1.21])
              
             fig3 = plt.figure(3)
-            plt.plot(self.I_load1[i], self.V_in[i], label = label[i], alpha=0.8, color = self.color[i])
+            plt.plot(self.I_load1[i], self.V_in[i],".-", label = label[i], alpha=0.8, color = self.color[i])
             plt.xlabel('Load current [A]')
             plt.ylabel("Input Voltage [V]")
             plt.grid(True)
@@ -297,7 +297,7 @@ class Plot(object):
                     x[i].append(row[0])
                     y[i].append(row[1])
  
-            plt.plot(x[i], y[i],color = colors[i], label = label[i])
+            plt.plot(x[i], y[i],".-",color = colors[i] , label = label[i])
         plt.legend(loc='lower right')
         plt.xlabel('Reference Voltage [V]')
         plt.ylabel('Output Voltage [V]')
@@ -375,13 +375,13 @@ class Plot(object):
         if "line" in file_name or "Line" in file_name:
             fig1=plt.figure(1)
             plt.grid(True)
-            plt.plot(self.I_in, self.V_in, color = self.plasma[200], label = "Vin")
+            plt.plot(self.I_in, self.V_in,".-", color = self.plasma[200], label = "Vin")
             plt.xlabel("Input Current [A]")
             plt.ylabel("Voltage [V]")
             plt.title("IV-Curve, two parallel ShuLDOs")         
             
             plt.grid(True)
-            plt.plot(self.I_in, self.V_out1, color = self.plasma[100], label = "Vout_1")
+            plt.plot(self.I_in, self.V_out1,".-", color = self.plasma[100], label = "Vout_1")
             plt.xlabel("Input Current [A]")
             plt.ylabel("Voltage [V]")
             plt.axis([0,1,0,1.5])
@@ -390,7 +390,7 @@ class Plot(object):
             
             try:
                 plt.grid(True)
-                plt.plot(self.I_in, self.V_out2, color = self.plasma[150], label = "Vout_2")
+                plt.plot(self.I_in, self.V_out2,".-", color = self.plasma[150], label = "Vout_2")
             except:
                 print "no Vout2"
             plt.legend(loc=4)
@@ -399,7 +399,7 @@ class Plot(object):
             
             fig3 = plt.figure(3)
             plt.grid(True)
-            plt.plot(self.V_in, self.V_out1, color = self.plasma[100])
+            plt.plot(self.V_in, self.V_out1,".-", color = self.plasma[100])
             plt.xlabel("Input Voltage [V]")
             plt.ylabel("Output Voltage [V]")
             plt.title("Dropout Voltage")
@@ -412,7 +412,7 @@ class Plot(object):
         elif "load" in file_name or "Load" in file_name:
             fig1=plt.figure(1)
             plt.grid(True)
-            plt.plot(self.I_load1, self.V_out1, color = self.plasma[100], label = "Vout_1")
+            plt.plot(self.I_load1, self.V_out1,".-", color = self.plasma[100], label = "Vout_1")
             plt.xlabel("Load Current [A]")
             plt.ylabel("Output Voltage [V]")
             plt.title("Iload vs. Vout1")
@@ -421,7 +421,7 @@ class Plot(object):
             
             fig2=plt.figure(2)
             plt.grid(True)
-            plt.plot(self.I_load1, self.V_out2, color = self.plasma[100])
+            plt.plot(self.I_load1, self.V_out2,".-", color = self.plasma[100])
             plt.xlabel("Load Current [A]")
             plt.ylabel("Output Voltage [V]")
             plt.title("Iload vs. Vout2")
@@ -430,7 +430,7 @@ class Plot(object):
             
             fig1=plt.figure(1)
             plt.grid(True)
-            plt.plot(self.I_load1, self.V_in, color = self.plasma[200], label = "Vin")
+            plt.plot(self.I_load1, self.V_in,".-", color = self.plasma[200], label = "Vin")
             plt.xlabel("Load Current [A]")
             plt.ylabel("Voltage [V]")
             plt.title("Iload vs. Vin")
@@ -505,7 +505,7 @@ class Plot(object):
                         TotDose.append(dose[i])
         try:
             plt.figure(1)
-            plt.semilogx(dose, Vout1, color = self.plasma[100])
+            plt.semilogx(dose, Vout1,".-", color = self.plasma[100])
             plt.grid(True)
             plt.xlabel("Integrated Dose [MRad]")
             plt.ylabel("Output Voltage [V]")
@@ -513,7 +513,7 @@ class Plot(object):
             plt.xlim(float(dose[0]), float(dose[-1]))
             
             plt.figure(2)
-            plt.semilogx(dose, Vout2, color = self.plasma[100])
+            plt.semilogx(dose, Vout2,".-", color = self.plasma[100])
             plt.grid(True)
             plt.xlabel("Integrated Dose [MRad]")
             plt.ylabel("Output Voltage [V]")
@@ -521,7 +521,7 @@ class Plot(object):
             plt.xlim(float(dose[0]), float(dose[-1]))
             
             plt.figure(3)
-            plt.semilogx(dose, Vin, color = self.plasma[100])
+            plt.semilogx(dose, Vin,".-", color = self.plasma[100])
             plt.grid(True)
             plt.xlabel("Integrated Dose [MRad]")
             plt.ylabel("Input Voltage [V]")
