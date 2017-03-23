@@ -151,7 +151,6 @@ class IV(object):
             plt.axis([0,1.5,0,1.75])
             plt.legend()
             plt.savefig(file_name + '.pdf')
-            plt.show()
         else:
             print "Data not found"
           

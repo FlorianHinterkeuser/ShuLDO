@@ -151,7 +151,6 @@ class LoadReg(object):
             plt.axis([0,-1,0,1.75])
             plt.legend()
             plt.savefig(str(file_name)+".pdf")
-            plt.show()
         else:
             print "Data not found"
           
