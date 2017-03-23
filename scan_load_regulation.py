@@ -18,21 +18,14 @@ class LoadReg(object):
     
 
     '''
-    Class to perform a standard IV scan of the FE65 ShuLDO. For the standalone scan (current supply mode), one regulator is operated in current supply mode (Jumper P7 // P8 // P9: bottom), the remaining regulators
-    in voltage supply mode (Jumper P7 // P8 // P9: top). 'Sourcemeter1' supplys the input current. The input voltage is measured using 4-wire sensing between P01 (GND) and P03 (HI), the additional
-    voltage drop due to R02 can be calculated using the input current and Ohm's law.
-    The output voltage is measured via 4-wire sensing (Jumper P13 // P17 // P21). 
+    Class to perform a standard IV scan of the FE65 ShuLDO.
     '''
 
     
     
     def scan_loadreg_CURR(self, file_name, max_Iload, polarity, steps , stepsize, Iin, vref, vofs, *device):
         '''
-        IV-scan in current supply mode. One regulator is operated in current supply mode (Jumper P7 // P8 // P9: bottom), the remaining regulators
-        in voltage supply mode (Jumper P7 // P8 // P9: top). 'Sourcemeter1' supplys the input current. The input voltage is measured using 4-wire sensing between P01 (GND) and P03 (HI), the additional
-        voltage drop due to R02 can be calculated using the input current and Ohm's law.
-        The output voltage is measured via 4-wire sensing (Jumper P13 // P17 // P21).
-        For a parallel scan, a second regulator is set to current supply mode. The maximum allowed input current has to be adjusted accordingly (x2).
+        IV-scan in current supply mode.
         '''
         time.sleep(misc.minimum_delay)
         logging.info("Starting ...")
@@ -93,7 +86,68 @@ class LoadReg(object):
         misc.reset(1, *device)
         misc.reset(2, *device)
         
+    def scan_loadreg_VOLT(self, file_name, max_Iload, polarity, steps , stepsize, Vin, vref, vofs, *device):
+        '''
+        IV-scan in current supply mode.
+        '''
+        time.sleep(misc.minimum_delay)
+        logging.info("Starting ...")
         
+        misc.reset(1, *device)                               #Sourcemeter Reset: reset(channel, *device). If two-channel meters are used, call reset() again for each additional channel.
+        misc.reset(2, *device)
+        
+        misc.set_source_mode('VOLT', 1, *device)          #set current source mode for every sourcemeter. If two-channel meters are used, call again for additional channels.
+        misc.set_source_mode('VOLT', 2, 'Sourcemeter1')         #Vref / Vofs
+        dut['Sourcemeter1'].four_wire_on(channel=1)
+        dut['Sourcemeter2'].four_wire_on()                  #4-wire sensing.
+        
+        dut['Sourcemeter1'].set_current_limit(2, channel = 1)       #Set compliance limits
+        dut['Sourcemeter1'].set_current_limit(0.1, channel = 2)        
+        dut['Sourcemeter2'].set_voltage_limit(2)
+        
+        dut['Sourcemeter1'].set_voltage_range(2, channel = 1)       #Set source range
+        dut['Sourcemeter1'].set_voltage_range(2, channel = 2)
+        dut['Sourcemeter2'].set_autorange()
+
+        dut['Sourcemeter1'].on(channel=1)
+        dut['Sourcemeter1'].on(channel=2)
+        dut['Sourcemeter2'].on()
+
+        fncounter=1                                                 #creates output .csv
+        
+        while os.path.isfile( file_name ):
+            file_name = file_name.split('.')[0]
+            file_name = file_name + "_" + str(fncounter) + ".csv"
+            fncounter = fncounter + 1
+         
+        iload = 0
+        #dut['Sourcemeter1'].set_voltage(vref, channel = 2)                #Use this to set a reference voltage rather than measuring it. Or, use a multimeter to measure it.
+        dut['Sourcemeter1'].set_voltage(vofs, channel = 2)                #Use this to set an offset voltage rather than measuring it. Or, use a multimeter to measure it.
+        dut['Sourcemeter1'].set_voltage(Vin, channel=1)   
+        
+        with open(file_name, 'wb') as outfile:
+            f = csv.writer(outfile ,quoting=csv.QUOTE_NONNUMERIC)
+            f.writerow(['Input voltage [V]', 'Input current [A]', 'Regulator 1 output voltage [V]', 'Regulator 1 load current [A]'])                      #What is written in the output file
+
+            for x in range(0, int(steps)):                                                                                                                      #loop over steps                                                                
+                dut['Sourcemeter2'].set_current(polarity*iload)                                                                                                  #Set input current
+                input_current = misc.measure_current(1, 'Sourcemeter1')[0]                                                                                          #Value of interest is in the [0] position of the readout list
+                input_voltage = misc.measure_voltage(1, 'Sourcemeter1')[0]
+                output_voltage_1 = misc.measure_voltage(1, 'Sourcemeter2')[0]
+                load_current = misc.measure_current(1, 'Sourcemeter2')[0]
+                logging.info("Input current is %f A" % input_current)                                                                                           #Logging the readout
+                logging.info("Input voltage is %f V" % input_voltage)
+                logging.info("Regulator 1 output voltage is %f V" % output_voltage_1)
+                logging.info("Regulator 1 load current is %f A" % load_current)
+                misc.data.append([input_voltage, input_current, output_voltage_1, load_current])                                                          #Writing readout in output file
+                f.writerow(misc.data[-1])
+                iload += stepsize                                                                                                                               #Increase input current for next iteration
+                if iload >= max_Iload or input_voltage >= 1.99:                                                                                                #Maximum values reached?
+                    break         
+            
+            logging.info('Measurement finished, plotting ...')
+        misc.reset(1, *device)
+        misc.reset(2, *device)
         
     def LivePlot(self, file_name):
         csvfilearray = []
@@ -154,6 +208,9 @@ class LoadReg(object):
         else:
             print "Data not found"
           
+    
+    
+    
     def testfunction(self, *device):                #Devicetest: identifier
         print dut['Sourcemeter1'].get_name()    
         

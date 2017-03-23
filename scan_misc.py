@@ -10,7 +10,6 @@ import logging
 import csv
 import matplotlib.pyplot as plt
 import multiprocessing
-import progressbar
 import os.path
 
 from basil.dut import Dut
@@ -190,11 +189,9 @@ if __name__ == '__main__':
     dut = Dut('devices.yaml')
     dut.init()
     #print dut['Sourcemeter1'].get_name()
-    #print dut['Sourcemeter2'].get_name()
-    #print dut['Sourcemeter3'].get_name()
     
     misc = Misc(dut=dut)
-    misc.reset(1, 'Sourcemeter1', 'Sourcemeter2')
+    misc.reset(1, 'Sourcemeter1', 'Sourcemeter2')                       #misc.reset(channel, device*)
     misc.reset(2, 'Sourcemeter1')
 
     
