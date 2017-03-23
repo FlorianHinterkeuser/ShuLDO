@@ -2,7 +2,18 @@ transfer_layer:
   - name  : visa_sm1
     type  : Serial
     init  :
-        port    : COM6
+        port    : COM14
+        read_termination : "\n"
+        baudrate        : 19200
+#        backend          : "@py"
+#        query_delay      : 0.01
+#        timeout          : 2000 
+
+
+  - name  : visa_sm2
+    type  : Serial
+    init  :
+        port    : COM13
         read_termination : "\r"
         baudrate        : 19200
 #        backend          : "@py"
@@ -10,14 +21,6 @@ transfer_layer:
 #        timeout          : 2000 
 
         
-  - name  : visa_sm2
-    type  : Visa
-    init  :
-        resource_name : ASRLCOM7
-        read_termination : "\r"
-        baud_rate : 19200
-        backend : "@py"
-
 
 
 
@@ -26,11 +29,10 @@ hw_drivers:
     type      : scpi
     interface : visa_sm1
     init      :
-         device    : Keithley 2410
+         device    : Keithley 2602A
 
-         
   - name      : Sourcemeter2
     type      : scpi
     interface : visa_sm2
     init      :
-         device    : Keithley 2000
+         device    : Keithley 2400
