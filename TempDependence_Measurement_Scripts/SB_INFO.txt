@@ -1,0 +1,37 @@
+scan_line_regulation_TempDep.py     -->     Scans IV-curves for different Vref/Voffs settings while logging the temperature
+scan_load_regulation_TempDep.py     -->     Scans load-dependence of Vout for different Vref/Voffs settings while logging the temperature
+
+
+
+Plot_line_regulation_TempDep.py     -->     Plots IV-curves for different (ambient) temperatures in one diagram
+Plot_load_regulation_TempDep.py     -->     Plots load-regulation-curves for different (ambient) temperatures in one diagram
+
+
+
+scan_line_regulation.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I/V_in      CH1-Sense:      V_in
+            CH2:    I_load      CH2-Sense:      V_out
+        SM2:
+            CH1:    V_ref       CH1-Sense:      -
+        SM3:
+            CH1:    V_offs      CH1-Sense:      -
+
+
+
+scan_load_regulation.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I/V_in      CH1-Sense:      V_in
+            CH2:    I_load      CH2-Sense:      V_out
+        SM2:
+            CH1:    V_ref       CH1-Sense:      -
+        SM3:
+            CH1:    V_offs      CH1-Sense:      -
+
+
+
+SM1:    Keithley 2602A
+SM2:    Keithley 2410 (2001)
+SM3:    Keithley 2410 (2004)
