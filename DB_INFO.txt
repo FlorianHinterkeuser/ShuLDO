@@ -1,0 +1,75 @@
+DB_scan_line_regulation.py                          -->     Scans an IV-curve for two regulators operating in parallel
+DB_scan_line_regulation_SingleChip.py               -->     Scans an IV-curve for a single regulator (all others in LDO-mode)
+
+DB_scan_load_regulation.py                          -->     Scans a load-regulation-curve for two regulators operating in parallel
+DB_scan_load_regulation_SingleChip.py               -->     Scans a load-regulation-curve for a single regulator (all others in LDO-mode)
+
+DB_scan_powerup_current_distribution.py             -->     Scans the current distribution between two regulators/chips during powerup
+                                                            (use this instead of 'DB_scan_line_regulation.py', if SM3 is not available)
+DB_scan_load_regulation_current_distribution.py     -->     Scans load-dependence of current distribution between two parallel operating regulators/chips
+
+
+
+DB_scan_line_regulation.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I_in        CH1-Sense:      V_in
+            CH2:    I_load1-M   CH2-Sense:      V_out1-M
+        SM2:
+            CH1:    I_load2-K   CH1-Sense:      V_out2-K
+        SM3:
+            CH1:    -           CH1-Sense:      V_shunt1        =>      to obtain powerup current distribution, if SM3 is available
+                                                                        (substitutes 'DB_scan_powerup_current_distribution.py' then)
+
+
+DB_scan_line_regulation_SingleChip.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I_in        CH1-Sense:      V_in
+            CH2:    I_loadN-M   CH2-Sense:      V_outN-M
+        SM2:
+            CH1:    -           CH1-Sense:      V_shuntN
+        SM3:
+            CH1:    -           CH1-Sense:      -
+
+
+
+DB_scan_load_regulation.py
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I_in        CH1-Sense:      V_in
+            CH2:    I_load1-M   CH2-Sense:      V_out1-M
+        SM2:
+            CH1:    I_load2-K   CH1-Sense:      V_out2-K
+        SM3:
+            CH1:    -           CH1-Sense:      V_shunt1        =>      to obtain load-dependent current distribution, if SM3 is available
+
+
+
+DB_scan_load_regulation_SingleChip.py
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I_in        CH1-Sense:      V_in
+            CH2:    I_loadN-M   CH2-Sense:      V_outN-M
+        SM2:
+            CH1:    -           CH1-Sense:      V_shuntN
+        SM3:
+            CH1:    -           CH1-Sense:      -
+
+
+
+DB_scan_powerup_current_distribution.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I_in        CH1-Sense:      V_in
+            CH2:    -           CH2-Sense:      -
+        SM2:
+            CH1:    -           CH1-Sense:      V_shunt1
+        SM3:
+            CH1:    -           CH1-Sense:      -
+
+
+
+SM1:    Keithley 2602A
+SM2:    Keithley 2410 (2001)
+SM3:    Keithley 2410 (2004)

@@ -1,0 +1,51 @@
+scan_line_regulation.py             -->     Scans IV-curve
+scan_load_regulation.py             -->     Scans load-dependence of Vout
+scan_Vref_Range.py                  -->     Scans Vref-dependence of Vout
+
+
+
+plot_Load_Regulation                -->     Puts results of scan_load_regulation.py for multiple Iin or Vin in one plot
+plot_Vref_Range_Multiple_Iload.py   -->     Puts results of scan_Vref_Range.py for multiple Iload in one plot
+plot_Vref_Range_Multiple_IorVin     -->     Puts results of scan_Vref_Range.py for multiple Iin or Vin in one plot
+
+
+
+scan_line_regulation.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I/V_in      CH1-Sense:      V_in
+            CH2:    I_load      CH2-Sense:      V_out
+        SM2:
+            CH1:    V_ref       CH1-Sense:      -
+        SM3:
+            CH1:    V_offs      CH1-Sense:      -
+
+
+
+scan_load_regulation.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I/V_in      CH1-Sense:      V_in
+            CH2:    I_load      CH2-Sense:      V_out
+        SM2:
+            CH1:    V_ref       CH1-Sense:      -
+        SM3:
+            CH1:    V_offs      CH1-Sense:      -
+
+
+
+scan_Vref_Range.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I/V_in      CH1-Sense:      V_in
+            CH2:    I_load      CH2-Sense:      V_out
+        SM2:
+            CH1:    V_ref       CH1-Sense:      -
+        SM3:
+            CH1:    V_offs      CH1-Sense:      -
+
+
+
+SM1:    Keithley 2602A
+SM2:    Keithley 2410 (2001)
+SM3:    Keithley 2410 (2004)
