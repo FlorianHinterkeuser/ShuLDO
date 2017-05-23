@@ -207,14 +207,19 @@ if __name__ == '__main__':
     '''
     Test section
     '''
-    
     dut = Dut('devices.yaml')
     dut.init()
-    #print dut['Sourcemeter1'].get_name()
-    
-    misc = Misc(dut=dut)
-    misc.reset(1, 'Sourcemeter1', 'Sourcemeter2')                       #misc.reset(channel, device*)
-    misc.reset(2, 'Sourcemeter1')
+    print dut['Sourcemeter1'].get_name()
+    print dut['Sourcemeter2'].get_name()
+    print dut['Sourcemeter3'].get_name()
 
-    
-    
+    misc = Misc(dut=dut)
+#    misc.reset(1, 'Sourcemeter1')                       #misc.reset(channel, device*)
+#    misc.reset(2, 'Sourcemeter1')
+#    misc.reset(1, 'Sourcemeter2')
+
+#    dut['Sourcemeter1'].get_voltage(channel = 2)
+
+#    misc.reset(1, 'Sourcemeter1')                       #misc.reset(channel, device*)
+#    misc.reset(2, 'Sourcemeter1')
+#    misc.reset(1, 'Sourcemeter2')

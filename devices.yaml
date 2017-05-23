@@ -1,38 +1,50 @@
 transfer_layer:
-  - name  : visa_sm1
+  - name  : sm1
     type  : Serial
     init  :
-        port    : COM14
+        port    : /dev/ttyUSB3
         read_termination : "\n"
         baudrate        : 19200
 #        backend          : "@py"
 #        query_delay      : 0.01
-#        timeout          : 2000 
+#        timeout          : 2000
 
-
-  - name  : visa_sm2
+  - name  : sm2
     type  : Serial
     init  :
-        port    : COM13
+        port    : /dev/ttyUSB2
+        read_termination : "\n"
+        baudrate        : 19200
+#        backend          : "@py"
+#        query_delay      : 0.01
+#        timeout          : 2000
+
+  - name  : sm3
+    type  : Serial
+    init  :
+        port    : /dev/ttyUSB1
         read_termination : "\r"
         baudrate        : 19200
 #        backend          : "@py"
 #        query_delay      : 0.01
-#        timeout          : 2000 
-
-        
-
+#        timeout          : 2000
 
 
 hw_drivers:
   - name      : Sourcemeter1
     type      : scpi
-    interface : visa_sm1
+    interface : sm1
     init      :
          device    : Keithley 2602A
 
   - name      : Sourcemeter2
     type      : scpi
-    interface : visa_sm2
+    interface : sm2
     init      :
-         device    : Keithley 2400
+         device    : Keithley 2410
+
+  - name      : Sourcemeter3
+    type      : scpi
+    interface : sm3
+    init      :
+         device    : Keithley 2410
