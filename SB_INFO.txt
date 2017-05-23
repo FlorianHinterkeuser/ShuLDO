@@ -1,12 +1,14 @@
-scan_line_regulation.py             -->     Scans IV-curve
-scan_load_regulation.py             -->     Scans load-dependence of Vout
-scan_Vref_Range.py                  -->     Scans Vref-dependence of Vout
+SB_scan_line_regulation.py      -->     Scans IV-curve
+SB_scan_load_regulation.py      -->     Scans load-dependence of Vout
+SB_scan_Vref_range.py           -->     Scans Vref-dependence of Vout
 
 
 
-plot_Load_Regulation                -->     Puts results of scan_load_regulation.py for multiple Iin or Vin in one plot
-plot_Vref_Range_Multiple_Iload.py   -->     Puts results of scan_Vref_Range.py for multiple Iload in one plot
-plot_Vref_Range_Multiple_IorVin     -->     Puts results of scan_Vref_Range.py for multiple Iin or Vin in one plot
+./Misc_Plot_Scripts:
+SB_Plot_Load_Regulation                             -->     Puts results of SB_scan_load_regulation.py for multiple Iin or Vin in one plot
+SB_Plot_Vref_Range_Multiple_Iload.py                -->     Puts results of SB_scan_Vref_range.py for multiple Iload in one plot
+SB_Plot_Vref_Range_Multiple_IorVin                  -->     Puts results of SB_scan_Vref_range.py for multiple Iin or Vin in one plot
+SB_Plot_Vref_Range_InputImpedance_Multiple_Iload    -->     Plots Vref-dependence of Rin for multiple Iload in one plot
 
 
 
