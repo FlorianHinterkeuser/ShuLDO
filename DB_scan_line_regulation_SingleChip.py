@@ -28,9 +28,9 @@ class IV(object):
         logging.info("Starting ...")
         
         #Sourcemeter Reset: reset(channel, *device). If two-channel meters are used, call reset() again for each additional channel.
-        misc.reset(1, 'Sourcemeter1')
-        misc.reset(2, 'Sourcemeter1')
-        misc.reset(1, 'Sourcemeter2')
+        misc.reset(1, 'Sourcemeter1')   #Iin
+        misc.reset(2, 'Sourcemeter1')   #IloadN-M
+        misc.reset(1, 'Sourcemeter2')   #VshuntN
         
         #Set current source mode for every sourcemeter. If two-channel meters are used, call again for additional channels.
         misc.set_source_mode('CURR', 1, 'Sourcemeter1')

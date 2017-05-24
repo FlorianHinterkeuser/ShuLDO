@@ -9,7 +9,12 @@ DB_scan_powerup_current_distribution.py             -->     Scans the current di
 DB_scan_load_regulation_current_distribution.py     -->     Scans load-dependence of current distribution between two parallel operating regulators/chips
 
 
+__________
+DB_Plot_powerup_current_distribution.py             -->     Plots the current distribution between two regulators/chips during powerup
+                                                            using data of 'DB_scan_line_regulation.py'
 
+
+__________
 DB_scan_line_regulation.py:
 --> Sourcemeter configuration:
         SM1:

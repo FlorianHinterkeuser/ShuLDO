@@ -88,9 +88,9 @@ class IV(object):
             
             
             if dynLoadChipID == '1':
-                dut['Sourcemeter2'].set_current(loadPolarity2*stat_Iload2)       #set Iload_stat
+                dut['Sourcemeter2'].set_current(loadPolarity2*stat_Iload2)              #set Iload_stat
             elif dynLoadChipID == '2':
-                dut['Sourcemeter1'].set_current(loadPolarity2*stat_Iload2, channel=2)       #set Iload_stat
+                dut['Sourcemeter1'].set_current(loadPolarity2*stat_Iload2, channel=2)   #set Iload_stat
             
             
             dynLoadCurr = 0
@@ -148,6 +148,7 @@ class IV(object):
         misc.reset(1, 'Sourcemeter1')
         misc.reset(2, 'Sourcemeter1')
         misc.reset(1, 'Sourcemeter2')
+        misc.reset(1, 'Sourcemeter3')
         
         iv.livePlot(file_name, dynLoadChipID)
 
