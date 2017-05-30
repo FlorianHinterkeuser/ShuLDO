@@ -138,7 +138,7 @@ class IV(object):
                                   load_current_1*loadPolarity1, output_voltage_1, load_current_2*loadPolarity2, output_voltage_2])
                 f.writerow(misc.data[-1])
                 #
-                dynLoadCurr += stepSize                                                     #Increase dynamic load current for next iteration
+                dynLoadCurr += stepSize                                                         #Increase dynamic load current for next iteration
                 if float(dynLoadCurr) > float(max_Iload1) or float(input_voltage) >= 1.99 or \
                    -float(dynLoadCurr)*loadPolarity1-float(stat_Iload2)*loadPolarity2 >= float(Iin)*inputPolarity:      #Maximum values reached?
                     break
@@ -163,35 +163,43 @@ class IV(object):
         logging.info("Starting ...")
         
         #Sourcemeter Reset: reset(channel, *device). If two-channel meters are used, call reset() again for each additional channel.
-        misc.reset(1, 'Sourcemeter1')
-        misc.reset(2, 'Sourcemeter1')
-        misc.reset(1, 'Sourcemeter2')
+        misc.reset(1, 'Sourcemeter1')   #Vin
+        misc.reset(2, 'Sourcemeter1')   #Iload1
+        misc.reset(1, 'Sourcemeter2')   #Iload2
+        #
+        misc.reset(1, 'Sourcemeter3')   #Vshunt1
         
         #Set current source mode for every sourcemeter. If two-channel meters are used, call again for additional channels.
         misc.set_source_mode('VOLT', 1, 'Sourcemeter1')
         misc.set_source_mode('CURR', 2, 'Sourcemeter1')
         misc.set_source_mode('CURR', 1, 'Sourcemeter2')
+        misc.set_source_mode('CURR', 1, 'Sourcemeter3')
         
         #Use 4-wire sensing.
         dut['Sourcemeter1'].four_wire_on(channel=1)
         dut['Sourcemeter1'].four_wire_on(channel=2)         
         dut['Sourcemeter2'].four_wire_on()
+        dut['Sourcemeter3'].four_wire_on()
         
         #Set compliance limits
-        dut['Sourcemeter1'].set_current_limit(1, channel = 1)
+        dut['Sourcemeter1'].set_current_limit(2, channel = 1)
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
         dut['Sourcemeter2'].set_voltage_limit(2)
+        dut['Sourcemeter3'].set_voltage_limit(0.02)
         
         #Set source range
         dut['Sourcemeter1'].set_voltage_range(6, channel = 1)
         dut['Sourcemeter1'].set_current_range(1, channel = 2)
         dut['Sourcemeter2'].set_autorange()
+        dut['Sourcemeter3'].set_autorange()
         
         #Activate
         dut['Sourcemeter1'].on(channel=1)
         dut['Sourcemeter1'].on(channel=2)
         #dut['Sourcemeter2'].on()
         dut['Sourcemeter2'].set_current(0)
+        #dut['Sourcemeter3'].on()
+        dut['Sourcemeter3'].set_current(0)
         
         #Don't overwrite existing .csv-files
         fncounter=1
@@ -203,30 +211,31 @@ class IV(object):
         with open(file_name, 'wb') as outfile:
             f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
             #What is written in the output file
-            f.writerow(['Input current [A]', 'Input voltage [V]', 'Reg 1-'+regID1+' load current [A]', 'Reg 1-'+regID1+' output voltage [V]', \
+            f.writerow(['Input current [A]', 'Input voltage [V]', 'Reg 1 input current [A]', 'Reg 2 input current [A]', \
+                        'Reg 1-'+regID1+' load current [A]', 'Reg 1-'+regID1+' output voltage [V]', \
                         'Reg 2-'+regID2+' load current [A]', 'Reg 2-'+regID2+' output voltage [V]'])
             
             Rshunt = 0.01 #R02/03 on PCB
             
             
-            dut['Sourcemeter1'].set_voltage(inputPolarity*Vin, channel=1)                   #set Vin
+            dut['Sourcemeter1'].set_voltage(inputPolarity*Vin, channel=1)               #set Vin
             
             
             if dynLoadChipID == '1':
-                dut['Sourcemeter2'].set_current(loadPolarity2*stat_Iload2)                  #set Iload_stat
+                dut['Sourcemeter2'].set_current(loadPolarity2*stat_Iload2)              #set Iload_stat
             elif dynLoadChipID == '2':
-                dut['Sourcemeter1'].set_current(loadPolarity2*stat_Iload2, channel=2)       #set Iload_stat
+                dut['Sourcemeter1'].set_current(loadPolarity2*stat_Iload2, channel=2)   #set Iload_stat
             
             
             dynLoadCurr = 0
             #Measurement loop
             for x in range(0, int(steps)):
                 if dynLoadChipID == '1':
-                    dut['Sourcemeter1'].set_current(loadPolarity1*dynLoadCurr, channel=2)       #set Iload_dyn
+                    dut['Sourcemeter1'].set_current(loadPolarity1*dynLoadCurr, channel=2)   #set Iload_dyn
                 elif dynLoadChipID == '2':
-                    dut['Sourcemeter2'].set_current(loadPolarity1*dynLoadCurr)                  #set Iload_dyn
+                    dut['Sourcemeter2'].set_current(loadPolarity1*dynLoadCurr)              #set Iload_dyn
                 #
-                input_current = misc.measure_current(1, 'Sourcemeter1')[0]              #measure Iin
+                input_current = misc.measure_current(1, 'Sourcemeter1')[0]                  #measure Iin
                 input_voltage = Vin#misc.measure_voltage(1, 'Sourcemeter1')[0]              #measure Vin
                 #
                 load_current_1 = 0
@@ -245,10 +254,10 @@ class IV(object):
                 outputRefRatio1 = output_voltage_1 / reference_voltage_1
                 outputRefRatio2 = output_voltage_2 / reference_voltage_2
                 #
-                ##shunt_voltage_1 = misc.measure_voltage(ch..., 'Sourcemeter...')[0]        #measure Vshunt_1
-                ##input_current_1 = shunt_voltage_1/Rshunt                                  #measure Iin_1
+                shunt_voltage_1 = misc.measure_voltage(1, 'Sourcemeter3')[0]        #measure Vshunt_1
+                input_current_1 = shunt_voltage_1/Rshunt                            #measure Iin_1
                 ##shunt_voltage_2 = misc.measure_voltage(ch..., 'Sourcemeter...')[0]        #measure Vshunt_1
-                ##input_current_2 = shunt_voltage_2/Rshunt                                  #measure Iin_1
+                input_current_2 = input_current - input_current_1                   #measure Iin_2
                 #
                 #Logging the readout
                 logging.info("Input current is %r A" % input_current)           
@@ -259,11 +268,12 @@ class IV(object):
                 logging.info("Regulator 2-"+regID2+" output voltage is %r V" % output_voltage_2)
                 #
                 #Writing readout in output file
-                misc.data.append([input_current, input_voltage, load_current_1*loadPolarity1, output_voltage_1, load_current_2*loadPolarity2, output_voltage_2])
+                misc.data.append([input_current, input_voltage, input_current_1, input_current_2, \
+                                  load_current_1*loadPolarity1, output_voltage_1, load_current_2*loadPolarity2, output_voltage_2])
                 f.writerow(misc.data[-1])
                 #
                 dynLoadCurr += stepSize                                                     #Increase dynamic load current for next iteration
-                if float(dynLoadCurr) > float(max_Iload1) or float(input_current) >= 0.99 or \
+                if float(dynLoadCurr) > float(max_Iload1) or float(input_current) >= 1.99 or \
                    -float(dynLoadCurr)*loadPolarity1-float(stat_Iload2)*loadPolarity2 >= float(Iin)*inputPolarity:      #Maximum values reached?
                     break
         
@@ -272,6 +282,7 @@ class IV(object):
         misc.reset(1, 'Sourcemeter1')
         misc.reset(2, 'Sourcemeter1')
         misc.reset(1, 'Sourcemeter2')
+        misc.reset(1, 'Sourcemeter3')
         
         iv.livePlot(file_name, dynLoadChipID)
 

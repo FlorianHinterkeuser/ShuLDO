@@ -125,9 +125,9 @@ class IV(object):
         logging.info("Starting ...")
         
         #Sourcemeter Reset: reset(channel, *device). If two-channel meters are used, call reset() again for each additional channel.
-        misc.reset(1, 'Sourcemeter1')
-        misc.reset(2, 'Sourcemeter1')
-        misc.reset(1, 'Sourcemeter2')
+        misc.reset(1, 'Sourcemeter1')   #Vin
+        misc.reset(2, 'Sourcemeter1')   #
+        misc.reset(1, 'Sourcemeter2')   #Vshunt1
         
         #Set current source mode for every sourcemeter. If two-channel meters are used, call again for additional channels.
         misc.set_source_mode('VOLT', 1, 'Sourcemeter1')
@@ -168,8 +168,6 @@ class IV(object):
             f.writerow(['Input current [A]', 'Input voltage [V]', 'Reg 1 shunt current [A]', 'Reg 2 shunt current [A]'])
             
             Rshunt = 0.01    #R02/03 on PCB
-            #Rshunt_1 = 0.01 #R02 on PCB
-            #Rshunt_2 = 0.01 #R03 on PCB
             
             inputVolt = 0
             #Measurement loop

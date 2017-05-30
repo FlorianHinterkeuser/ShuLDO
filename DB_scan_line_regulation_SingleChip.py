@@ -78,9 +78,9 @@ class IV(object):
             for x in range(0, int(steps)):
                 dut['Sourcemeter1'].set_current(inputPolarity*inputCurr, channel=1) #set Iin
                 #
-                input_current = misc.measure_current(1, 'Sourcemeter1')[0]          #measure Iin
+                input_current = inputCurr#misc.measure_current(1, 'Sourcemeter1')[0]    #measure Iin
                 input_voltage = misc.measure_voltage(1, 'Sourcemeter1')[0]          #measure Vin
-                load_current_1 = 0#misc.measure_current(2, 'Sourcemeter1')[0]         #measure Iload_1
+                load_current_1 = 0#misc.measure_current(2, 'Sourcemeter1')[0]           #measure Iload_1
                 output_voltage_1 = misc.measure_voltage(2, 'Sourcemeter1')[0]       #measure Vout_1
                 reference_voltage_1 = 0.6#misc.measure_voltage(1, 'Sourcemeter2')[0]    #measure Vref_1
                 outputRefRatio = output_voltage_1 / reference_voltage_1
@@ -99,12 +99,9 @@ class IV(object):
                 misc.data.append([input_current, input_voltage, output_voltage_1, outputRefRatio, shunt_voltage_1, input_current_1])
                 f.writerow(misc.data[-1])
                 #
-                inputCurr += stepSize                                                                                   #Increase input current for next iteration
-                if float(inputCurr) > float(max_Iin) or float(input_voltage) >= 1.99 or float(input_current_1) >= 0.99: #Maximum values reached?
+                inputCurr += stepSize                                                   #Increase input current for next iteration
+                if float(inputCurr) > float(max_Iin) or float(input_voltage) >= 1.99:   #Maximum values reached?
                     break
-                ##if (float(inputCurr) >= 0.3 and float(inputCurr) < 0.3+stepSize) or \
-                ##   (float(inputCurr) >= 0.6 and float(inputCurr) < 0.6+stepSize):
-                ##    raw_input("Write down second shunt voltage? (Iin = "+str(input_current)+")")
         
         logging.info('Measurement finished.')
         
@@ -124,36 +121,35 @@ class IV(object):
         logging.info("Starting ...")
         
         #Sourcemeter Reset: reset(channel, *device). If two-channel meters are used, call reset() again for each additional channel.
-        misc.reset(1, 'Sourcemeter1')
-        misc.reset(2, 'Sourcemeter1')
-        misc.reset(1, 'Sourcemeter2')
+        misc.reset(1, 'Sourcemeter1')   #Vin
+        misc.reset(2, 'Sourcemeter1')   #IloadN-M
+        misc.reset(1, 'Sourcemeter2')   #VshuntN
         
         #Set current source mode for every sourcemeter. If two-channel meters are used, call again for additional channels.
         misc.set_source_mode('VOLT', 1, 'Sourcemeter1')
         misc.set_source_mode('CURR', 2, 'Sourcemeter1')
-        #misc.set_source_mode('CURR', 1, 'Sourcemeter2')
-        #misc.set_source_mode('VOLT', 1, 'Sourcemeter2')
+        misc.set_source_mode('CURR', 1, 'Sourcemeter2')
         
         #Use 4-wire sensing.
         dut['Sourcemeter1'].four_wire_on(channel=1)
         dut['Sourcemeter1'].four_wire_on(channel=2)         
-        #dut['Sourcemeter2'].four_wire_on()
+        dut['Sourcemeter2'].four_wire_on()
         
         #Set compliance limits
-        dut['Sourcemeter1'].set_current_limit(0.05, channel = 1)
+        dut['Sourcemeter1'].set_current_limit(1, channel = 1)
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
-        #dut['Sourcemeter2'].set_voltage_limit(2)
+        dut['Sourcemeter2'].set_voltage_limit(0.01)
         
         #Set source range
-        dut['Sourcemeter1'].set_voltage_range(2, channel = 1)
+        dut['Sourcemeter1'].set_current_range(1, channel = 1)
         dut['Sourcemeter1'].set_current_range(0.001, channel = 2)
-        #dut['Sourcemeter2'].set_autorange()
+        dut['Sourcemeter2'].set_autorange()
         
         #Activate
         dut['Sourcemeter1'].on(channel=1)
         dut['Sourcemeter1'].on(channel=2)
         #dut['Sourcemeter2'].on()
-        #dut['Sourcemeter2'].set_current(0)
+        dut['Sourcemeter2'].set_current(0)
         
         #Don't overwrite existing .csv-files
         fncounter=1
@@ -168,8 +164,7 @@ class IV(object):
             f.writerow(['Input current [A]', 'Input voltage [V]', 'Reg '+chipID+'-'+regID+' output voltage [V]', \
                         'Reg '+chipID+'-'+regID+' output-reference ratio [1]', 'Reg '+chipID+' shunt voltage [V]', 'Reg '+chipID+' input current [A]'])
             
-            Rshunt_1 = 0.01 #R02 on PCB
-            Rshunt_2 = 0.01 #R03 on PCB
+            Rshunt = 0.01 #R02/03 on PCB
             
             inputVolt = 0
             #Measurement loop
@@ -177,30 +172,29 @@ class IV(object):
                 dut['Sourcemeter1'].set_voltage(inputPolarity*inputVolt, channel=1) #set Vin
                 #
                 input_current = misc.measure_current(1, 'Sourcemeter1')[0]          #measure Iin
-                input_voltage = misc.measure_voltage(1, 'Sourcemeter1')[0]          #measure Vin
-                load_current_1 = 0#misc.measure_current(2, 'Sourcemeter1')[0]         #measure Iload_1
+                input_voltage = inputVolt#misc.measure_voltage(1, 'Sourcemeter1')[0]    #measure Vin
+                load_current_1 = 0#misc.measure_current(2, 'Sourcemeter1')[0]           #measure Iload_1
                 output_voltage_1 = misc.measure_voltage(2, 'Sourcemeter1')[0]       #measure Vout_1
                 reference_voltage_1 = 0.6#misc.measure_voltage(1, 'Sourcemeter2')[0]    #measure Vref_1
                 outputRefRatio = output_voltage_1 / reference_voltage_1
-                #shunt_voltage_1 = misc.measure_voltage(1, 'Sourcemeter2')[0]        #measure Vshunt_1
-                #input_current_1 = shunt_voltage_1/Rshunt_1                          #measure Iin_1
+                shunt_voltage_1 = misc.measure_voltage(1, 'Sourcemeter2')[0]        #measure Vshunt_1
+                input_current_1 = shunt_voltage_1/Rshunt                            #measure Iin_1
                 #
                 #Logging the readout
                 logging.info("Input current is %r A" % input_current)           
                 logging.info("Input voltage is %r V" % input_voltage)
                 logging.info("Regulator output voltage is %r V" % output_voltage_1)
                 logging.info("Regulator output-reference voltage ratio is %r" % outputRefRatio)
+                logging.info("Regulator shunt voltage is %r V" % shunt_voltage_1)
+                logging.info("Regulator input current is %r A" % input_current_1)
                 #
                 #Writing readout in output file
-                misc.data.append([input_current, input_voltage, output_voltage_1, outputRefRatio])
+                misc.data.append([input_current, input_voltage, output_voltage_1, outputRefRatio, shunt_voltage_1, input_current_1])
                 f.writerow(misc.data[-1])
                 #
-                inputVolt += stepSize                                                                               #Increase input current for next iteration
-                if float(inputVolt) > float(max_Vin) or float(input_current) >= 0.05:                               #Maximum values reached?
+                inputVolt += stepSize                                                   #Increase input current for next iteration
+                if float(inputVolt) > float(max_Vin) or float(input_current) >= 0.99:   #Maximum values reached?
                     break
-                ##if (float(inputCurr) >= 0.3 and float(inputCurr) < 0.3+stepSize) or \
-                ##   (float(inputCurr) >= 0.6 and float(inputCurr) < 0.6+stepSize):
-                ##    raw_input("Write down second shunt voltage? (Iin = "+str(input_current)+")")
         
         logging.info('Measurement finished.')
         

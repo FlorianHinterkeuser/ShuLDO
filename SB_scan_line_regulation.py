@@ -40,7 +40,7 @@ class IV(object):
         misc.reset(2, 'Sourcemeter1')   #Iload
         #
         misc.reset(1, 'Sourcemeter2')   #Vref
-        misc.reset(1, 'Sourcemeter3')   #Voffs
+        misc.reset(1, 'Sourcemeter3')   #Voff
         
         #Set current source mode for every sourcemeter. If two-channel meters are used, call again for additional channels.
         misc.set_source_mode('CURR', 1, 'Sourcemeter1')
@@ -208,10 +208,10 @@ class IV(object):
                 #
                 input_current = misc.measure_current(1, 'Sourcemeter1')[0]              #measure Iin
                 input_voltage = inputVolt#misc.measure_voltage(1, 'Sourcemeter1')[0]        #measure Vin
-                load_current_1 = 0#misc.measure_current(2, 'Sourcemeter1')[0]         #measure Iload_1
+                load_current_1 = 0#misc.measure_current(2, 'Sourcemeter1')[0]               #measure Iload_1
                 output_voltage_1 = misc.measure_voltage(2, 'Sourcemeter1')[0]           #measure Vout_1
                 reference_voltage_1 = Vref#misc.measure_voltage(1, 'Sourcemeter2')[0]       #measure Vref_1
-                offset_voltage_1 = Voff#misc.measure_voltage(1, 'Sourcemeter3')[0]         #measure Voff_1
+                offset_voltage_1 = Voff#misc.measure_voltage(1, 'Sourcemeter3')[0]          #measure Voff_1
                 outputRefRatio = output_voltage_1 / reference_voltage_1
                 #
                 #Logging the readout
@@ -224,8 +224,8 @@ class IV(object):
                 misc.data.append([input_current, input_voltage, output_voltage_1, outputRefRatio])
                 f.writerow(misc.data[-1])
                 #
-                inputVolt += stepSize                                                                       #Increase input current for next iteration
-                if float(inputVolt) > float(max_Vin) or float(input_current) >= self.maximumInputCurrent:   #Maximum values reached?
+                inputVolt += stepSize                                                       #Increase input current for next iteration
+                if float(inputVolt) > float(max_Vin) or float(input_current) >= 0.050:      #Maximum values reached?
                     break
         
         logging.info('Measurement finished.')
