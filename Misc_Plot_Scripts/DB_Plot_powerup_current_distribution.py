@@ -62,21 +62,22 @@ class IV(object):
         if "CURR" in file_name:
             plt.plot(I_in, I_in1, ".-", markersize=3, linewidth=0.5, color = 'r', label= 'First Reg. Input Current')
             plt.plot(I_in, I_in2, ".-", markersize=3, linewidth=0.5, color = 'g', label= 'Second Reg. Input Current')
-            plt.axis([0,1.5,0,2.0])
-            plt.xlabel('Input Current / A')
+            #plt.axis([0,1.5,0,2.0])
+            plt.xlabel('Total Input Current / A')
             plt.ylabel('Regulator Input Current / A')
         
         plt.legend()
-        plt.savefig('Powerup_ShuntCurrentDist_CURR'+file_name.split("IV_CURR")[1] + '.pdf')
+        plt.savefig('output/Powerup_Current_Distribution/Powerup_CurrentDist_CURR'+file_name.split("output/IV_CURR/IV_CURR")[1] + '.pdf')
 
 
 if __name__ == '__main__':
     
     iv = IV()
     
-    regId1 = '1'
+    regId1 = '2'
     regId2 = '1'
     
-    fileName = "output/IV_CURR_Vref1_600mV_Vref2_600mV_REG1-"+regId1+"_REG2-"+regId2+".csv"
+#    fileName = "output/IV_CURR/IV_CURR_Vref1_600mV_Vref2_600mV_REG1-"+regId1+"_REG2-"+regId2+".csv"
+    fileName = "output/IV_CURR/IV_CURR_Vref1_600mV_Vref2_600mV_Voff1_800mV_Voff2_800mV.csv"
     
     iv.livePlot(fileName)

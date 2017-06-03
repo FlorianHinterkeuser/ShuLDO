@@ -275,9 +275,9 @@ class IV(object):
             plt.ylabel('Voltage / V')
         elif "VOLT" in file_name:
             plt.plot(V_in, V_out1, ".-", markersize=3, linewidth=0.5, color = 'r', label= 'Output Voltage')
-            plt.plot(V_in, V_in, ".-", markersize=3, linewidth=0.5, color = 'b', label = 'Input Voltage')
+            #plt.plot(V_in, V_in, ".-", markersize=3, linewidth=0.5, color = 'b', label = 'Input Voltage')
             #plt.plot(V_in, V_drop1, ".-", markersize=3, linewidth=0.5, color = 'g', label = 'Dropout Voltage')
-            plt.plot(V_in, I_in, ".-", markersize=3, linewidth=0.5, color = 'y', label = 'Input Current')
+            #plt.plot(V_in, I_in, ".-", markersize=3, linewidth=0.5, color = 'y', label = 'Input Current')
             plt.xlabel('Input Voltage / V')
             plt.ylabel('Voltage / V; Current / A')
             plt.axis([0,1.9,0,2.0])

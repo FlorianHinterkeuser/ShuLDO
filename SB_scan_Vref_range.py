@@ -262,32 +262,32 @@ class IV(object):
             for row in plots:
                 csvfilearray.append(row)
         for i in range(0, len(header)):
-            if "Input voltage" in header[i]:
+            if "Reference voltage" in header[i]:
+                Vref = i
+                logging.info("reference voltage in column %r" % i)
+            elif "Input voltage" in header[i]:
                 Vin = i
                 logging.info("Input voltage in column %r" % i)
             elif "Input current" in header[i]:
                 Iin = i
                 logging.info("Input current in column %r" % i)
-            elif "load current" in header[i]:
-                Iload1 = i
-                logging.info("load current in column %r" % i)
             elif "output voltage" in header[i]:                         #Beware: lower case "o" in output voltage!
                 Vout1 = i
                 logging.info("Output voltage in column %r" % i)
         
-        
+
+        V_ref = [None]*len(csvfilearray)
         V_in = [None]*len(csvfilearray)
         I_in = [None]*len(csvfilearray)
-        I_load1 = [None]*len(csvfilearray)
         V_out1 = [None]*len(csvfilearray)
         V_drop1 = [None]*len(csvfilearray)
         
         
         for i in range(0, len(csvfilearray)):
             try:
+                V_ref[i] = csvfilearray[i][Vref]
                 V_in[i] = csvfilearray[i][Vin]
                 I_in[i] = csvfilearray[i][Iin]
-                I_load1[i] = csvfilearray[i][Iload1]
                 V_out1[i] = csvfilearray[i][Vout1]
             except AttributeError:
                 pass
@@ -298,17 +298,16 @@ class IV(object):
         plt.legend()
         
         if "CURR" in file_name:
-            plt.plot(I_load1, V_out1, ".-", markersize=3, linewidth=0.5, color = 'r', label= 'Output Voltage')
-            plt.plot(I_load1, V_in, ".-", markersize=3, linewidth=0.5, color = 'b', label = 'Input Voltage')
+            plt.plot(V_ref, V_out1, ".-", markersize=3, linewidth=0.5, color = 'r', label= 'Output Voltage')
+            #plt.plot(V_ref, V_in, ".-", markersize=3, linewidth=0.5, color = 'b', label = 'Input Voltage')
             #plt.axis([0,1.0,1.1,1.4])
-            plt.xlabel('Load Current / A')
-            plt.ylabel('Voltage / V')
+            plt.xlabel('Reference Voltage / V')
+            plt.ylabel('Output Voltage / V')
         elif "VOLT" in file_name:
-            plt.plot(I_load1, V_out1, ".-", markersize=3, linewidth=0.5, color = 'r', label= 'Output Voltage')
-            #plt.plot(I_load1, I_in, ".-", markersize=3, linewidth=0.5, color = 'b', label = 'Input Current')
+            plt.plot(V_ref, V_out1, ".-", markersize=3, linewidth=0.5, color = 'r', label= 'Output Voltage')
             #plt.axis([0,1.0,1.1,1.4])
-            plt.xlabel('Load Current / A')
-            plt.ylabel('Voltage / V')
+            plt.xlabel('Reference Voltage / V')
+            plt.ylabel('Output Voltage / V')
         
         plt.savefig(file_name+".pdf")
 
@@ -334,10 +333,10 @@ if __name__ == '__main__':
     
     
     #
-    fileName = "output/Vref_Range_CURR/Vref_Range_CURR_Iin_1000mA_Iload_0mA_Voff_600mV.csv"
+    fileName = "output/Vref_Range_CURR/Vref_Range_CURR_Iin_860mA_Iload_800mA_Voff_800mV.csv"
     
     #iv.scan_Vref_CURR(file_name, Iin,  inputPolarity, Iload, loadPolarity, min_Vref, max_Vref, steps, stepSize, Voff)
-    iv.scan_Vref_CURR(fileName,   1.0,  1,             0.0,   -1,           0.45,     0.65,     20,    0.01,     0.6)
+    iv.scan_Vref_CURR(fileName,   0.86,  1,             0.8,   -1,           0.50,     0.60,     20,    0.005,     0.8)
     
     
 #    #

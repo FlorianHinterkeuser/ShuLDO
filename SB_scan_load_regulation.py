@@ -263,9 +263,6 @@ class IV(object):
             if "Input voltage" in header[i]:
                 Vin = i
                 logging.info("Input voltage in column %r" % i)
-            elif "Input current" in header[i]:
-                Iin = i
-                logging.info("Input current in column %r" % i)
             elif "load current" in header[i]:
                 Iload1 = i
                 logging.info("load current in column %r" % i)
@@ -275,7 +272,6 @@ class IV(object):
         
         
         V_in = [None]*len(csvfilearray)
-        I_in = [None]*len(csvfilearray)
         I_load1 = [None]*len(csvfilearray)
         V_out1 = [None]*len(csvfilearray)
         V_drop1 = [None]*len(csvfilearray)
@@ -284,7 +280,6 @@ class IV(object):
         for i in range(0, len(csvfilearray)):
             try:
                 V_in[i] = csvfilearray[i][Vin]
-                I_in[i] = csvfilearray[i][Iin]
                 I_load1[i] = csvfilearray[i][Iload1]
                 V_out1[i] = csvfilearray[i][Vout1]
             except AttributeError:
@@ -332,10 +327,10 @@ if __name__ == '__main__':
     
     
     #
-    fileName = "output/Load_Regulation_CURR/Loadreg_CURR_Iin_1000mA_Vref_500mV_Voff_800mV.csv"
+    fileName = "output/Load_Regulation_CURR/Loadreg_CURR_Iin_860mA_Vref_500mV_Voff_800mV.csv"
     
     #scan_loadreg_CURR(file_name,  Iin,  inputPolarity, max_Iload, loadPolarity, steps, stepSize, Vref, Voff)
-    iv.scan_loadreg_CURR(fileName, 1.00, 1,             1.00,      -1,           100,   0.01,     0.6,  0.8)
+    iv.scan_loadreg_CURR(fileName, 0.86, 1,             0.86,      -1,           86,    0.01,     0.5,  0.8)
 
     
 #    #

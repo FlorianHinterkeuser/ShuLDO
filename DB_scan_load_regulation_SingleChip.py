@@ -236,6 +236,9 @@ class IV(object):
             elif "Input current" in header[i]:
                 Iin = i
                 logging.info("Input current in column %r" % i)
+            elif "input voltage" in header[i] and "Reg" in header[i]:
+                Iin1 = i
+                logging.info("Regulator input voltage in column %r" % i)
             elif "load current" in header[i] and "Reg" in header[i]:
                 Iload1 = i
                 logging.info("Load current in column %r" % i)
@@ -254,6 +257,7 @@ class IV(object):
             try:
                 V_in[i] = csvfilearray[i][Vin]
                 I_in[i] = csvfilearray[i][Iin]
+                I_in1[i] = csvfilearray[i][Iin1]
                 I_load1[i] = csvfilearray[i][Iload1]
                 V_out1[i] = csvfilearray[i][Vout1]
             except AttributeError:
