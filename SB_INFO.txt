@@ -1,6 +1,7 @@
 SB_scan_line_regulation.py      -->     Scans IV-curve
 SB_scan_load_regulation.py      -->     Scans load-dependence of Vout
 SB_scan_Vref_range.py           -->     Scans Vref-dependence of Vout
+SB_run_chip_static.py           -->     Run the chip with static I/Vin and monitor V/Iin and Vout
 
 
 
@@ -24,7 +25,19 @@ scan_line_regulation.py:
 
 
 
-scan_load_regulation.py:
+SB_run_chip_static.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I/V_in      CH1-Sense:      V_in
+            CH2:    I_load      CH2-Sense:      V_out
+        SM2:
+            CH1:    V_ref       CH1-Sense:      -
+        SM3:
+            CH1:    V_offs      CH1-Sense:      -
+
+
+
+scan_Vref_Range.py:
 --> Sourcemeter configuration:
         SM1:
             CH1:    I/V_in      CH1-Sense:      V_in

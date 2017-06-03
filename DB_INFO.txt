@@ -8,10 +8,14 @@ DB_scan_powerup_current_distribution.py             -->     Scans the current di
                                                             (use this instead of 'DB_scan_line_regulation.py', if SM3 is not available)
 DB_scan_load_regulation_current_distribution.py     -->     Scans load-dependence of current distribution between two parallel operating regulators/chips
 
+DB_run_chip_static.py                               -->     Run the chip with static I/Vin and monitor V/Iin, Vout and the input current distribution
+
 
 __________
 DB_Plot_powerup_current_distribution.py             -->     Plots the current distribution between two regulators/chips during powerup
                                                             using data of 'DB_scan_line_regulation.py'
+DB_Plot_loadreg_current_distribution.py             -->     Plots the load-dependence of current distribution between two regulators/chips
+                                                            using data of 'DB_scan_load_regulation.py'
 
 
 __________
@@ -72,6 +76,18 @@ DB_scan_powerup_current_distribution.py:
             CH1:    -           CH1-Sense:      V_shunt1
         SM3:
             CH1:    -           CH1-Sense:      -
+
+
+
+DB_run_chip_static.py:
+--> Sourcemeter configuration:
+        SM1:
+            CH1:    I_in        CH1-Sense:      V_in
+            CH2:    I_load1-M   CH2-Sense:      V_out1-M
+        SM2:
+            CH1:    I_load2-K   CH1-Sense:      V_out2-K
+        SM3:
+            CH1:    -           CH1-Sense:      V_shunt1
 
 
 
