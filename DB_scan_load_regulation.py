@@ -19,11 +19,22 @@ class IV(object):
     Class to perform a standard IV scan of the FE65 ShuLDO.
     '''
     
+    def __init__(self):
+        """A constructor"""
+        self.maximumInputCurrent = 0.0  #for a single regulator
+    
     def scan_loadreg_CURR(self, regID1, regID2, dynLoadChipID, file_name, Iin, inputPolarity, max_Iload1, loadPolarity1, steps, stepSize, \
                                                                                                 stat_Iload2, loadPolarity2):
         '''
         Load-regulation-scan in current supply mode.
         '''
+        
+        if float(Iin) > 2*float(self.maximumInputCurrent):
+            print "ERROR: Iin > 2*maximumInputCurrent"
+            return
+        if float(max_Iload1)+float(stat_Iload2) > float(Iin):
+            print "ERROR: max_Iload+stat_Iload2 > Iin"
+            return
         
         time.sleep(misc.minimum_delay)
         logging.info("Starting ...")
@@ -51,7 +62,7 @@ class IV(object):
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 1)
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
         dut['Sourcemeter2'].set_voltage_limit(2)
-        dut['Sourcemeter3'].set_voltage_limit(0.02)
+        dut['Sourcemeter3'].set_voltage_limit(0.05)
         
         #Set source range
         dut['Sourcemeter1'].set_current_range(3, channel = 1)
@@ -138,9 +149,10 @@ class IV(object):
                                   load_current_1*loadPolarity1, output_voltage_1, load_current_2*loadPolarity2, output_voltage_2])
                 f.writerow(misc.data[-1])
                 #
-                dynLoadCurr += stepSize                                                         #Increase dynamic load current for next iteration
+                dynLoadCurr += stepSize                                                                         #Increase dynamic load current for next iteration
                 if float(dynLoadCurr) > float(max_Iload1) or float(input_voltage) >= 1.99 or \
-                   -float(dynLoadCurr)*loadPolarity1-float(stat_Iload2)*loadPolarity2 >= float(Iin)*inputPolarity:      #Maximum values reached?
+                   -float(dynLoadCurr)*loadPolarity1-float(stat_Iload2)*loadPolarity2 >= float(Iin)*inputPolarity or \
+                   float(input_current_1) > float(self.maximumInputCurrent) or float(input_current_2) > float(self.maximumInputCurrent): #Maximum values reached?
                     break
         
         logging.info('Measurement finished.')
@@ -185,7 +197,7 @@ class IV(object):
         dut['Sourcemeter1'].set_current_limit(2, channel = 1)
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
         dut['Sourcemeter2'].set_voltage_limit(2)
-        dut['Sourcemeter3'].set_voltage_limit(0.02)
+        dut['Sourcemeter3'].set_voltage_limit(0.05)
         
         #Set source range
         dut['Sourcemeter1'].set_voltage_range(6, channel = 1)
@@ -272,9 +284,10 @@ class IV(object):
                                   load_current_1*loadPolarity1, output_voltage_1, load_current_2*loadPolarity2, output_voltage_2])
                 f.writerow(misc.data[-1])
                 #
-                dynLoadCurr += stepSize                                                     #Increase dynamic load current for next iteration
+                dynLoadCurr += stepSize                                                                         #Increase dynamic load current for next iteration
                 if float(dynLoadCurr) > float(max_Iload1) or float(input_current) >= 1.99 or \
-                   -float(dynLoadCurr)*loadPolarity1-float(stat_Iload2)*loadPolarity2 >= float(Iin)*inputPolarity:      #Maximum values reached?
+                   -float(dynLoadCurr)*loadPolarity1-float(stat_Iload2)*loadPolarity2 >= float(Iin)*inputPolarity or \
+                   float(input_current_1) > float(self.maximumInputCurrent) or float(input_current_2) > float(self.maximumInputCurrent): #Maximum values reached?
                     break
         
         logging.info('Measurement finished.')
@@ -351,7 +364,7 @@ class IV(object):
                 plt.plot(I_load2, V_out2, ".-", markersize=3, linewidth=0.5, color = 'r', label = 'Reg 2 Output Voltage')
                 plt.xlabel('Reg 2 Load Current / A')
             plt.ylabel('Voltage / V')
-            plt.axis([0,0.5,1.1,1.5])
+            #plt.axis([0,0.5,1.1,1.5])
             plt.legend()
             plt.savefig(file_name + '.pdf')
         else:
@@ -369,20 +382,29 @@ if __name__ == '__main__':
     #Get meter ID to check communication
     print 'Sourcemeter 1: '+dut['Sourcemeter1'].get_name()
     print 'Sourcemeter 2: '+dut['Sourcemeter2'].get_name()
+    print 'Sourcemeter 3: '+dut['Sourcemeter3'].get_name()
     
     raw_input("Proceed?")
     
     iv = IV()
+#    iv.maximumInputCurrent = 1.0    #1A chip
+    iv.maximumInputCurrent = 2.0    #2A chip
     
     
     regId_1 = '1'
     regId_2 = '1'
     #
-    dynLoad_ChipId = '1'
+    dynLoad_ChipId = '2'
     
-    fileName = "output/Loadreg_CURR_Iin_1000mA_Vref1_600mV_Vref2_600mV_REG1-"+regId_1+"_REG2-"+regId_2+".csv"
+#    fileName = "output/Load_Regulation_CURR/Loadreg_CURR_Iin_1000mA_Vref1_600mV_Vref2_500mV_REG1-"+regId_1+"_REG2-"+regId_2+".csv"
+    fileName = "output/Load_Regulation_CURR/Loadreg_CURR_Iin_2000mA_Vref1_600mV_Vref2_500mV_Voff1_1000mV_Voff2_1000mV.csv"
+    #iv.livePlot(fileName, dynLoad_ChipId)
+    
+    #scan_loadreg_CURR(regID1,    regID2,  dynLoadChipID,  file_name, Iin, inputPolarity, max_Iload1, loadPolarity1, steps, stepSize, stat_Iload2, loadPolarity2)
+    iv.scan_loadreg_CURR(regId_1, regId_2, dynLoad_ChipId, fileName,  2.0, 1,             1.0,        -1,            50,    0.02,     0.0,         -1)
     
     
-    #iv.scan_loadreg_CURR(regID1, regID2, dynLoadChipID, file_name, Iin, inputPolarity, max_Iload1, loadPolarity1, steps, stepSize, stat_Iload2, loadPolarity2)
+#    fileName = "output/Load_Regulation_VOLT/Loadreg_VOLT_Vin_1400mV_Vref1_600mV_Vref2_600mV_REG1-"+regId_1+"_REG2-"+regId_2+".csv"
     
-    iv.scan_loadreg_CURR(regId_1, regId_2, dynLoad_ChipId, fileName, 1.0, 1,     0.5, -1, 51, 0.01,     0.0, -1)
+    #scan_loadreg_VOLT(regID1,    regID2,  dynLoadChipID,  file_name, Vin, inputPolarity, max_Iload1, loadPolarity1, steps, stepSize, stat_Iload2, loadPolarity2)
+#    iv.scan_loadreg_VOLT(regId_1, regId_2, dynLoad_ChipId, fileName,  1.4, 1,             0.5,        -1,            51,    0.01,     0.0,         -1)
