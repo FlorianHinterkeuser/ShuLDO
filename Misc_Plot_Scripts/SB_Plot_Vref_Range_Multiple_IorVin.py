@@ -56,33 +56,38 @@ class IV(object):
             saveFileName = ""
             
             #plot Vout
-#            if "CURR" in file_name:
-#                IinStr = file_name.split("_Iin_")[1].split("_load_")[0]
-#                saveFileName = fileNames[0].split("_Iin_")[0]+"_load_"+fileNames[0].split("_load_")[1]+".pdf"
-#                plt.plot(V_ref1, V_out1, ".-", markersize=3, linewidth=0.5, label="Output Voltage (Iin="+IinStr+")")
-#                plt.axis([0.45,0.625,0.9,1.3])
-#            elif "VOLT" in file_name:
-#                VinStr = file_name.split("_Vin_")[1].split("_load_")[0]
-#                saveFileName = fileNames[0].split("_Vin_")[0]+"_load_"+fileNames[0].split("_load_")[1]+".pdf"
-#                plt.plot(V_ref1, V_out1, ".-", markersize=3, linewidth=0.5, label="Output Voltage (Vin="+VinStr+")")
-#                plt.axis([0.45,0.625,0.9,1.3])
-#            else:
-#                print "Data not found"
-
-            #plot Ratio
             if "CURR" in file_name:
                 IinStr = file_name.split("_Iin_")[1].split("_load_")[0]
-                saveFileName = fileNames[0].split("_Iin_")[0]+"_load_"+fileNames[0].split("_load_")[1]+"_ratio.pdf"
-                plt.plot(V_ref1, Ratio_1, ".-", markersize=3, linewidth=0.5, label="Output-Reference-Ratio (Iin="+IinStr+")")
-                plt.axis([0.45,0.625,1.9,2.05])
+                saveFileName = fileNames[0].split("_Iin_")[0]+"_load_"+fileNames[0].split("_load_")[1]+".pdf"
+                plt.plot(V_ref1, V_out1, ".-", markersize=3, linewidth=0.5, label="Iin="+IinStr)
+                plt.ylabel("Output Voltage / V")
+                plt.axis([0.46,0.62,0.9,1.3])
             elif "VOLT" in file_name:
                 VinStr = file_name.split("_Vin_")[1].split("_load_")[0]
-                saveFileName = fileNames[0].split("_Vin_")[0]+"_load_"+fileNames[0].split("_load_")[1]+"_ratio.pdf"
-                plt.plot(V_ref1, Ratio_1, ".-", markersize=3, linewidth=0.5, label="Output-Reference-Ratio (Vin="+VinStr+")")
-                plt.axis([0.45,0.625,1.9,2.05])
+                saveFileName = fileNames[0].split("_Vin_")[0]+"_load_"+fileNames[0].split("_load_")[1]+".pdf"
+                plt.plot(V_ref1, V_out1, ".-", markersize=3, linewidth=0.5, label="Vin="+VinStr)
+                plt.ylabel("Output Voltage / V")
+                plt.axis([0.46,0.62,0.9,1.3])
             else:
                 print "Data not found"
+
+#            #plot Ratio
+#            if "CURR" in file_name:
+#                IinStr = file_name.split("_Iin_")[1].split("_load_")[0]
+#                saveFileName = fileNames[0].split("_Iin_")[0]+"_load_"+fileNames[0].split("_load_")[1]+"_ratio.pdf"
+#                plt.plot(V_ref1, Ratio_1, ".-", markersize=3, linewidth=0.5, label="Iin="+IinStr)
+#                plt.ylabel("Output-Reference-Ratio")
+#                plt.axis([0.46,0.62,1.95,2.00])
+#            elif "VOLT" in file_name:
+#                VinStr = file_name.split("_Vin_")[1].split("_load_")[0]
+#                saveFileName = fileNames[0].split("_Vin_")[0]+"_load_"+fileNames[0].split("_load_")[1]+"_ratio.pdf"
+#                plt.plot(V_ref1, Ratio_1, ".-", markersize=3, linewidth=0.5, label="Vin="+VinStr)
+#                plt.ylabel("Output-Reference-Ratio")
+#                plt.axis([0.46,0.62,1.95,2.00])
+#            else:
+#                print "Data not found"
         
+        plt.xlabel("Reference Voltage / V")
         plt.legend()
         plt.savefig(saveFileName)
 

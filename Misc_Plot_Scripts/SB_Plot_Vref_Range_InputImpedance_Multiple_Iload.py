@@ -61,14 +61,14 @@ class IV(object):
             IloadStr = file_name.split("_load_")[1].split(".csv")[0]
             
             if "CURR" in file_name or "VOLT" in file_name:
-                plt.plot(V_ref1, R_in, ".-", markersize=3, linewidth=0.5, label="Output Voltage (Iload="+IloadStr+")")
+                plt.plot(V_ref1, R_in, ".-", markersize=3, linewidth=0.5, label="Iload="+IloadStr)
                 ##plt.plot(V_ref1, Ratio_1, ".-", markersize=3, linewidth=0.5, label="Output-Reference-Ratio (Iload="+IloadStr+")")
             else:
                 print "Data not found"
         
-        plt.axis([0.45,0.625,2.6,3])
-        ##plt.axis([0.45,0.625,1.95,2.05])
-        ##plt.axis([0.45,0.625,1.9,2.05])
+        plt.axis([0.46,0.625,2.8,3.05])
+        plt.xlabel("Reference Voltage / V")
+        plt.ylabel("Input Impedance / Ohm")
         plt.legend()
         plt.savefig(fileNames[0].split("_load_")[0]+"_InputImpedance.pdf")
 

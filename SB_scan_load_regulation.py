@@ -288,7 +288,6 @@ class IV(object):
         
         
         plt.grid(True)
-        plt.legend()
         
         if "CURR" in file_name:
             plt.plot(I_load1, V_out1, ".-", markersize=3, linewidth=0.5, color = 'r', label= 'Output Voltage')
@@ -303,6 +302,7 @@ class IV(object):
             plt.xlabel('Load Current / A')
             plt.ylabel('Voltage / V')
         
+        plt.legend()
         plt.savefig(file_name+".pdf")
 
 

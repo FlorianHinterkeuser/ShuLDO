@@ -58,18 +58,29 @@ class IV(object):
             
             IloadStr = file_name.split("_load_")[1].split(".csv")[0]
             
+            #plot Vout
             if "CURR" in file_name or "VOLT" in file_name:
-                plt.plot(V_ref1, V_out1, ".-", markersize=3, linewidth=0.5, label="Output Voltage (Iload="+IloadStr+")")
-                ##plt.plot(V_ref1, Ratio_1, ".-", markersize=3, linewidth=0.5, label="Output-Reference-Ratio (Iload="+IloadStr+")")
+                plt.plot(V_ref1, V_out1, ".-", markersize=3, linewidth=0.5, label="Iload="+IloadStr)
             else:
                 print "Data not found"
         
-        plt.axis([0.45,0.625,0.9,1.3])
-        ##plt.axis([0.45,0.625,1.95,2.05])
-        ##plt.axis([0.45,0.625,1.9,2.05])
+        plt.axis([0.46,0.62,0.9,1.25])
+        plt.xlabel("Reference Voltage / V")
+        plt.ylabel("Output Voltage / V")
         plt.legend()
         plt.savefig(fileNames[0].split("_load_")[0]+".pdf")
-        ##plt.savefig(fileNames[0].split("_load_")[0]+"_ratio.pdf")
+
+#            #plot Ratio
+#            if "CURR" in file_name or "VOLT" in file_name:
+#                plt.plot(V_ref1, Ratio_1, ".-", markersize=3, linewidth=0.5, label="Iload="+IloadStr)
+#            else:
+#                print "Data not found"
+#        
+#        plt.axis([0.46,0.62,1.94,2.00])
+#        plt.xlabel("Reference Voltage / V")
+#        plt.ylabel("Output-Reference-Ratio")
+#        plt.legend()
+#        plt.savefig(fileNames[0].split("_load_")[0]+"_ratio.pdf")
 
 
 if __name__ == '__main__':
