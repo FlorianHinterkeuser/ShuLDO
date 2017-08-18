@@ -1,5 +1,5 @@
 '''
-Created on 26.09.2016
+Created on 24.05.2017
 
 @author: Florian, Markus
 '''
@@ -208,7 +208,7 @@ class IV(object):
             f.writerow(['Reference voltage [V]', 'Input voltage [V]', 'Input current [A]', 'output voltage [V]', 'output-reference ratio [1]'])
             
             
-            dut['Sourcemeter1'].set_current(inputPolarity*Iin, channel=1)                   #set Iin
+            dut['Sourcemeter1'].set_voltage(inputPolarity*Vin, channel=1)                   #set Vin
             dut['Sourcemeter1'].set_current(loadPolarity*Iload, channel=2)                  #set Iload
             
             
@@ -333,14 +333,14 @@ if __name__ == '__main__':
     
     
     #
-    fileName = "output/Vref_Range_CURR/Vref_Range_CURR_Iin_860mA_Iload_800mA_Voff_800mV.csv"
+    fileName = "output/Vref_Range_CURR/Vref_Range_CURR_Iin_860mA_Iload_0mA_Voff_800mV.csv"
     
     #iv.scan_Vref_CURR(file_name, Iin,  inputPolarity, Iload, loadPolarity, min_Vref, max_Vref, steps, stepSize, Voff)
-    iv.scan_Vref_CURR(fileName,   0.86,  1,             0.8,   -1,           0.50,     0.60,     20,    0.005,     0.8)
+    iv.scan_Vref_CURR(fileName,   0.86, 1,             0.0,   -1,           0.45,     0.65,     40,    0.005,     0.8)
     
     
 #    #
 #    fileName = "output/Vref_Range_VOLT/Vref_Range_VOLT_Vin_1400mV_Iload_0mA_Voff_600mV.csv"
 #    
 #    #iv.scan_Vref_VOLT(file_name, Vin,  inputPolarity, Iload, loadPolarity, min_Vref, max_Vref, steps, stepSize, Voff)
-#    iv.scan_Vref_VOLT(fileName,   1.4,  1,             0.0,   -1,           0.45,     0.65,     20,    0.01,     0.6)
+#    iv.scan_Vref_VOLT(fileName,   1.4,  1,             0.0,   -1,           0.45,     0.65,     40,    0.005,     0.8)

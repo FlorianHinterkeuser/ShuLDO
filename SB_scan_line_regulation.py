@@ -318,10 +318,10 @@ if __name__ == '__main__':
     
     
     #
-    fileName = "output/IV_CURR/IV_CURR_Vref_500mV_Voffs_800mV.csv"
+    fileName = "output/IV_CURR/IV_CURR_Vref_600mV_Voff_800mV.csv"
     
     #scan_IinVinVout_CURR(self, file_name, max_Iin, inputPolarity, steps, stepSize, Vref, Voff)
-    iv.scan_IinVinVout_CURR(    fileName,  1.99,    1,             100,   0.02,     0.5,  0.8)
+    iv.scan_IinVinVout_CURR(    fileName,  1.99,    1,             100,   0.02,     0.6,  0.8)
     
     
 #    #

@@ -1,5 +1,5 @@
 '''
-Created on 26.09.2016
+Created on 03.06.2017
 
 @author: Florian, Markus
 '''
@@ -125,7 +125,7 @@ class IV(object):
         
         dut['Sourcemeter1'].set_voltage(inputPolarity*Vin, channel=1)   #set Vin
         
-        iv.loop_VOLT()
+        iv.loop_VOLT(Vin)
     
     def loop_CURR(self, I_in):
         V_in = misc.measure_voltage(1, 'Sourcemeter1')[0]
@@ -133,7 +133,7 @@ class IV(object):
         V_out2 = misc.measure_voltage(1, 'Sourcemeter2')[0]
         I_in1 = (1/0.01)*misc.measure_voltage(1, 'Sourcemeter3')[0]
         I_in2 = I_in-I_in1
-        print "Vin: "+str(V_in)+"V\t\t"+"Vout1: "+str(V_out1)+"V\t\t"+"Vout2: "+str(V_out2)
+        print "Vin: "+str(V_in)+"V\t\t"+"Vout1: "+str(V_out1)+"V\t\t"+"Vout2: "+str(V_out2)+"V\n\t\t"+"Iin1: "+str(I_in1)+"A\t\t"+"Iin2: "+str(I_in2)
         if float(V_in) > 1.99:
             misc.reset(1, 'Sourcemeter1')
             misc.reset(2, 'Sourcemeter1')
@@ -158,11 +158,11 @@ class IV(object):
         time.sleep(2)
         iv.loop_CURR(I_in)
     
-    def loop_VOLT(self):
+    def loop_VOLT(self, V_in):
         I_in = misc.measure_current(1, 'Sourcemeter1')[0]
         V_out1 = misc.measure_voltage(2, 'Sourcemeter1')[0]
         V_out2 = misc.measure_voltage(1, 'Sourcemeter2')[0]
-        print "Iin: "+str(I_in)+"V\t\t"+"Vout1: "+str(V_out1)+"V\t\t"+"Vout2: "+str(V_out2)
+        print "Vin: "+str(V_in)+"V\t\t"+"Iin: "+str(I_in)+"A\t\t"+"Vout1: "+str(V_out1)+"V\t\t"+"Vout2: "+str(V_out2)
         if float(I_in) > 0.05:
             misc.reset(1, 'Sourcemeter1')
             misc.reset(2, 'Sourcemeter1')
@@ -171,7 +171,7 @@ class IV(object):
             print "ERROR: Iin reached maximum value ("+str(0.05)+"A)!"
             return
         time.sleep(2)
-        iv.loop_VOLT()
+        iv.loop_VOLT(V_in)
 
 
 if __name__ == '__main__':

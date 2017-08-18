@@ -21,7 +21,7 @@ scan_line_regulation.py:
         SM2:
             CH1:    V_ref       CH1-Sense:      -
         SM3:
-            CH1:    V_offs      CH1-Sense:      -
+            CH1:    V_off       CH1-Sense:      -
 
 
 
@@ -33,7 +33,7 @@ SB_run_chip_static.py:
         SM2:
             CH1:    V_ref       CH1-Sense:      -
         SM3:
-            CH1:    V_offs      CH1-Sense:      -
+            CH1:    V_off       CH1-Sense:      -
 
 
 
@@ -45,7 +45,7 @@ scan_Vref_Range.py:
         SM2:
             CH1:    V_ref       CH1-Sense:      -
         SM3:
-            CH1:    V_offs      CH1-Sense:      -
+            CH1:    V_off       CH1-Sense:      -
 
 
 
@@ -57,10 +57,11 @@ scan_Vref_Range.py:
         SM2:
             CH1:    V_ref       CH1-Sense:      -
         SM3:
-            CH1:    V_offs      CH1-Sense:      -
+            CH1:    V_off       CH1-Sense:      -
 
 
 
 SM1:    Keithley 2602A
-SM2:    Keithley 2410 (2001)
-SM3:    Keithley 2410 (2004)
+SM2:    Keithley 2410
+SM3:    Keithley 2410
+

@@ -292,7 +292,9 @@ class IV(object):
         if "CURR" in file_name:
             plt.plot(I_load1, V_out1, ".-", markersize=3, linewidth=0.5, color = 'r', label= 'Output Voltage')
             plt.plot(I_load1, V_in, ".-", markersize=3, linewidth=0.5, color = 'b', label = 'Input Voltage')
-            #plt.axis([0,1.0,1.1,1.4])
+            #plt.axis([0,0.86,1.0,1.4])
+            plt.xlim(0,0.86)
+            plt.ylim(1.15,1.45)
             plt.xlabel('Load Current / A')
             plt.ylabel('Voltage / V')
         elif "VOLT" in file_name:
@@ -327,14 +329,14 @@ if __name__ == '__main__':
     
     
     #
-    fileName = "output/Load_Regulation_CURR/Loadreg_CURR_Iin_860mA_Vref_500mV_Voff_800mV.csv"
+    fileName = "output/Load_Regulation_CURR/Loadreg_CURR_Iin_860mA_Vref_600mV_Voff_800mV.csv"
     
     #scan_loadreg_CURR(file_name,  Iin,  inputPolarity, max_Iload, loadPolarity, steps, stepSize, Vref, Voff)
-    iv.scan_loadreg_CURR(fileName, 0.86, 1,             0.86,      -1,           86,    0.01,     0.5,  0.8)
-
+    iv.scan_loadreg_CURR(fileName, 0.86, 1,             0.86,      -1,           86,    0.01,     0.6,  0.8)
+    
     
 #    #
-#    fileName = "output/Load_Regulation_VOLT/Loadreg_VOLT_Vin_...mV_Vref_500mV_Voff_800mV.csv"
+#    fileName = "output/Load_Regulation_VOLT/Loadreg_VOLT_Vin_1400mV_Vref_600mV_Voff_800mV.csv"
 #    
 #    #scan_loadreg_VOLT(file_name,  Vin, inputPolarity, max_Iload, loadPolarity, steps, stepSize, Vref, Voff)
-#    iv.scan_loadreg_CURR(fileName, 1.4, 1,             1.00,      -1,           100,   0.01,     0.6,  0.8)
+#    iv.scan_loadreg_VOLT(fileName, 1.4,  1,             1.00,      -1,           100,   0.01,     0.6,  0.8)

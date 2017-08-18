@@ -1,5 +1,5 @@
 '''
-Created on 26.09.2016
+Created on 24.05.2017
 
 @author: Florian, Markus
 '''
@@ -76,7 +76,7 @@ class IV(object):
         
         dut['Sourcemeter1'].set_current(inputPolarity*Iin, channel=1) #set Iin
         
-        iv.loop_CURR()
+        iv.loop_CURR(Iin)
     
     def run_VOLT(self, Vin, inputPolarity, Vref, Voff):
         
@@ -131,17 +131,35 @@ class IV(object):
         
         dut['Sourcemeter1'].set_voltage(inputPolarity*Vin, channel=1)   #set Vin
         
-        iv.loop_VOLT()
+        iv.loop_VOLT(Vin)
     
-    def loop_CURR(self):
-        print "Vin: "+str(misc.measure_voltage(1, 'Sourcemeter1')[0])+"V\t\t"+"Vout: "+str(misc.measure_voltage(2, 'Sourcemeter1')[0])+"V"
+    def loop_CURR(self, I_in):
+        V_in = misc.measure_voltage(1, 'Sourcemeter1')[0]
+        V_out = misc.measure_voltage(2, 'Sourcemeter1')[0]
+        print "Iin: "+str(I_in)+"A\t\t"+"Vin: "+str(V_in)+"V\t\t"+"Vout: "+str(V_out)+"V"
+        if float(V_in) > 1.99:
+            misc.reset(1, 'Sourcemeter1')
+            misc.reset(2, 'Sourcemeter1')
+            misc.reset(1, 'Sourcemeter2')
+            misc.reset(1, 'Sourcemeter3')
+            print "ERROR: Vin reached maximum value (1.99V)!"
+            return
         time.sleep(2)
-        iv.loop_CURR()
+        iv.loop_CURR(I_in)
     
-    def loop_VOLT(self):
-        print "Iin: "+str(misc.measure_current(1, 'Sourcemeter1')[0])+"A\t\t"+"Vout: "+str(misc.measure_voltage(2, 'Sourcemeter1')[0])+"V"
+    def loop_VOLT(self, V_in):
+        I_in = misc.measure_current(1, 'Sourcemeter1')[0]
+        V_out = misc.measure_voltage(2, 'Sourcemeter1')[0]
+        print "Vin: "+str(V_in)+"V\t\t"+"Iin: "+str(I_in)+"A\t\t"+"Vout: "+str(V_out)+"V"
+        if float(I_in) > 0.05:
+            misc.reset(1, 'Sourcemeter1')
+            misc.reset(2, 'Sourcemeter1')
+            misc.reset(1, 'Sourcemeter2')
+            misc.reset(1, 'Sourcemeter3')
+            print "ERROR: Iin reached maximum value ("+str(0.05)+"A)!"
+            return
         time.sleep(2)
-        iv.loop_VOLT()
+        iv.loop_VOLT(V_in)
 
 
 if __name__ == '__main__':
@@ -163,7 +181,7 @@ if __name__ == '__main__':
     iv.maximumInputCurrent = 2.0    #2A chip
     
     #iv.run_CURR(Iin, inputPolarity, Vref, Voff):
-    iv.run_CURR(1.0,  1,             0.6,  0.6)
+    iv.run_CURR(1.0,  1,             0.6,  0.8)
     
 #    #iv.run_VOLT(Vin, inputPolarity, Vref, Voff):
-#    iv.run_VOLT(1.4,  1,             0.6,  0.6)
+#    iv.run_VOLT(1.4,  1,             0.6,  0.8)

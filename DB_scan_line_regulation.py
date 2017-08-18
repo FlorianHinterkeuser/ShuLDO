@@ -1,5 +1,5 @@
 '''
-Created on 26.09.2016
+Created on 24.05.2017
 
 @author: Florian, Markus
 '''
@@ -302,7 +302,8 @@ class IV(object):
             plt.plot(I_in, V_in, ".-", markersize=3, linewidth=0.5, color = 'b', label = 'Input Voltage')
             plt.plot(I_in, V_out1, ".-", markersize=3, linewidth=0.5, color = 'r', label= 'First Reg. Output Voltage')
             plt.plot(I_in, V_out2, ".-", markersize=3, linewidth=0.5, color = 'g', label= 'Second Reg. Output Voltage')
-            plt.axis([0,2*self.maximumInputCurrent,0,2.0])
+            plt.axis([0,3.0,0,2.0])
+            #plt.axis([0,2*self.maximumInputCurrent,0,2.0])
             plt.xlabel('Input Current / A')
             plt.ylabel('Voltage / V')
         elif "VOLT" in file_name:

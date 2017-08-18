@@ -1,5 +1,5 @@
 '''
-Created on 26.09.2016
+Created on 24.05.2017
 
 @author: Florian, Markus
 '''
@@ -364,7 +364,7 @@ class IV(object):
                 plt.plot(I_load2, V_out2, ".-", markersize=3, linewidth=0.5, color = 'r', label = 'Reg 2 Output Voltage')
                 plt.xlabel('Reg 2 Load Current / A')
             plt.ylabel('Voltage / V')
-            #plt.axis([0,0.5,1.1,1.5])
+            plt.axis([0,1.0,0.95,1.55])
             plt.legend()
             plt.savefig(file_name + '.pdf')
         else:
@@ -394,7 +394,7 @@ if __name__ == '__main__':
     regId_1 = '1'
     regId_2 = '1'
     #
-    dynLoad_ChipId = '2'
+    dynLoad_ChipId = '1'
     
 #    fileName = "output/Load_Regulation_CURR/Loadreg_CURR_Iin_1000mA_Vref1_600mV_Vref2_500mV_REG1-"+regId_1+"_REG2-"+regId_2+".csv"
     fileName = "output/Load_Regulation_CURR/Loadreg_CURR_Iin_2000mA_Vref1_600mV_Vref2_500mV_Voff1_1000mV_Voff2_1000mV.csv"
