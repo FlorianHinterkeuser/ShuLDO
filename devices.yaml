@@ -2,7 +2,7 @@ transfer_layer:
   - name  : sm1
     type  : Serial
     init  :
-        port    : /dev/ttyUSB3
+        port    : COM2
         read_termination : "\n"
         baudrate        : 19200
 #        backend          : "@py"
@@ -12,23 +12,12 @@ transfer_layer:
   - name  : sm2
     type  : Serial
     init  :
-        port    : /dev/ttyUSB2
+        port    : COM1
         read_termination : "\n"
         baudrate        : 19200
 #        backend          : "@py"
 #        query_delay      : 0.01
 #        timeout          : 2000
-
-  - name  : sm3
-    type  : Serial
-    init  :
-        port    : /dev/ttyUSB1
-        read_termination : "\r"
-        baudrate        : 19200
-#        backend          : "@py"
-#        query_delay      : 0.01
-#        timeout          : 2000
-
 
 hw_drivers:
   - name      : Sourcemeter1
@@ -43,8 +32,3 @@ hw_drivers:
     init      :
          device    : Keithley 2410
 
-  - name      : Sourcemeter3
-    type      : scpi
-    interface : sm3
-    init      :
-         device    : Keithley 2410
