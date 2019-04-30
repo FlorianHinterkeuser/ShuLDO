@@ -1,0 +1,103 @@
+transfer_layer:
+  - name  : sm1
+    type  : Serial
+    init  :
+        port    : COM2
+        read_termination : "\n"
+        baudrate        : 19200
+#        backend          : "@py"
+#        query_delay      : 0.01
+#        timeout          : 2000
+
+  - name  : sm2
+    type  : Serial
+    init  :
+        port    : COM3
+        read_termination : "\n"
+        baudrate        : 19200
+#        backend          : "@py"
+#        query_delay      : 0.01
+#        timeout          : 2000
+
+  - name  : sm3
+    type  : Serial
+    init  :
+        port    : COM4
+        read_termination : "\n"
+        baudrate        : 19200
+#        backend          : "@py"
+#        query_delay      : 0.01
+#        timeout          : 2000
+
+#  - name  : sm5
+#    type  : Serial
+#    init  :
+#        port    : COM38
+#        read_termination : "\n"
+#        baudrate        : 19200
+#        backend          : "@py"
+#        query_delay      : 0.01
+#        timeout          : 2000
+
+  - name     : Serial
+    type     : Serial
+    init     :
+        port     : COM37
+        read_termination : "\r\n"
+        write_termination : "\n"
+        baudrate : 19200
+        timeout  : 2.0
+        xonxoff  : True
+        parity   : N
+        stopbits : 1
+        bytesize : 8
+        
+
+hw_drivers:
+  - name      : Powersupply
+    type      : tti_ql355tp
+    interface : Serial
+
+  - name      : Sourcemeter1
+    type      : scpi
+    interface : sm2
+    init      :
+         device    : Keithley 2634B
+
+  - name      : Sourcemeter2
+    type      : scpi
+    interface : sm1
+    init      :
+         device    : Keithley 2602A
+         
+  - name      : Multimeter1
+    type      : scpi
+    interface : sm3
+    init      :
+         device    : Keithley 2410
+         
+#  - name      : Sourcemeter4
+#    type      : scpi
+#    interface : sm5
+#    init      :
+#         device    : Keithley 2410
+
+registers:
+  - name      : Fan
+    type      : FunctionalRegister
+    hw_driver : Powersupply
+    arg_names : [ value, on ]
+    arg_add   : { 'channel': 3 }
+
+
+  - name      : VDDD
+    type      : FunctionalRegister
+    hw_driver : Powersupply
+    arg_names : [ value, on ]
+    arg_add   : { 'channel': 1 }
+    
+  - name      : VDDA
+    type      : FunctionalRegister
+    hw_driver : Powersupply
+    arg_names : [ value, on ]
+    arg_add   : { 'channel': 2 }

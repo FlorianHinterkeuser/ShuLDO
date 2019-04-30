@@ -56,6 +56,8 @@ class Misc(object):
                     model[i] = str(2602) + "A"
                 elif 'Model 2230G' in name_arr[i]:
                     model[i] = str(2230) + 'G'
+                elif 'Model 2634B' in name_arr[i]:
+                    model[i] = str(2634) + 'B'
             else:
                 #raise RuntimeError('Something went wrong')
                 pass
@@ -81,7 +83,7 @@ class Misc(object):
                     if abs(abs(measurement[i])/abs(current[i])-1) <= 0.01:
                         break
                 current[i] = measurement[i]
-            elif self.typ[i] == 'keithley_2602A':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
                 current[i] = float(self.dut[device[i]].get_current(channel = channel))
                 for j in range(0, 10):                                                            #Debouncing to ensure stable measurement
                     measurement[i] = float(self.dut[device[i]].get_current(channel=channel))
@@ -95,7 +97,7 @@ class Misc(object):
                         break
             #print j
             else:
-                print "Data not found"
+                raise ValueError
         return current
         
 
@@ -107,29 +109,52 @@ class Misc(object):
         voltage = [None]*len(device)
         measurement = [None]*len(device)
         for i in range(0, len(device)):
-            if self.typ[i] == 'keithley_2410' or self.typ[i] == 'keithley_2400' or self.typ[i] == 'keithley_2410':
+            if self.typ[i] == 'keithley_2410' or self.typ[i] == 'keithley_2000':
                 voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                while voltage[i] == 0:
+                    voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    if voltage[i] != 0:
+                        break
                 for j in range(0, 10):
                     measurement[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
-                    if abs(abs(measurement[i])/abs(voltage[i])-1) <= 0.01:
+                    if abs(abs(measurement[i])/abs(voltage[i]+0.0001)-1) <= 0.01:
                         break
                     voltage[i] = measurement[i]
-            elif self.typ[i] == 'keithley_2602A':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
                 voltage[i] = float(self.dut[device[i]].get_voltage(channel=channel))
+                while voltage[i] == 0:
+                    voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    if voltage[i] != 0:
+                        break
                 for j in range(0, 10):
                     measurement[i] = float(self.dut[device[i]].get_voltage(channel=channel).split(',')[0])
-                    if abs(abs(measurement[i])/abs(voltage[i])-1) <= 0.01:
+                    if abs(abs(measurement[i])/abs(voltage[i]+0.0001)-1) <= 0.01:
                         break
                     voltage[i] = measurement[i]
             elif self.typ[i] == 'keithley_2230G':
-                voltage[i] = float(self.dut[device[i]].get_voltage(channel=channel))
+                while voltage[i] == 0:
+                    voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    if voltage[i] != 0:
+                        break
                 for j in range(0, 10):
                     measurement[i] = float(self.dut[device[i]].get_voltage(channel=channel).split(',')[0])
-                    if abs(abs(measurement[i])/abs(voltage[i])-1) <= 0.01:
+                    if abs(abs(measurement[i])/abs(voltage[i]+0.0001)-1) <= 0.01:
                         break
                     voltage[i] = measurement[i]
+            elif self.typ[i] == 'keithley_2400':
+                while voltage[i] == 0:
+                    voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    if voltage[i] != 0:
+                        break
+                self.dut[device[i]].set_voltage_limit(2) 
+                for j in range(0, 10):
+                    measurement[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    self.dut[device[i]].set_voltage_limit(2) 
+                    if abs(abs(measurement[i])/abs(voltage[i]+0.0001)-1) <= 0.01:
+                        break
+                    voltage[i] = measurement[i]            
             else:
-                print "Data not found!"
+                raise ValueError
         return voltage
         
     
@@ -160,7 +185,7 @@ class Misc(object):
                         self.dut[device[i]].set_voltage_limit(0.01)
                         self.dut[device[i]].set_current(0)
                 set_mode [i] = str(self.dut[device[i]].get_source_mode())
-            elif self.typ[i] == 'keithley_2602A':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
                 if 'VOLT' in mode:
                     self.dut[device[i]].source_volt(channel=channel)
                 elif 'CURR' in mode:
@@ -191,7 +216,7 @@ class Misc(object):
                     print "ops"
                     return 'False'
                 self.dut[device[i]].off()
-            elif self.typ[i] == 'keithley_2602A':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
                 self.dut[device[i]].reset(channel=channel)
             elif self.typ[i] == 'keithley_2230G':
                 self.dut[device[i]].reset(channel=channel)
@@ -199,6 +224,11 @@ class Misc(object):
                 print "Reset data not found"    
         return set_mode
 
+    def dummy(self,n):
+        import random
+        random.seed(n)
+        number = random.randint(0,20)
+        return number
             
     
 
@@ -211,7 +241,6 @@ if __name__ == '__main__':
     dut.init()
     print dut['Sourcemeter1'].get_name()
     print dut['Sourcemeter2'].get_name()
-    print dut['Sourcemeter3'].get_name()
 
     misc = Misc(dut=dut)
 #    misc.reset(1, 'Sourcemeter1')                       #misc.reset(channel, device*)
