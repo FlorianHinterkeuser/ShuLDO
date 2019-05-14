@@ -13,12 +13,12 @@ import numpy as np
 import plot as plot
 #from RD53A_IV import IV
 #import RD53A_IV
-import New_SLDO as SLDO
+import SLDO as SLDO
 
 from scan_misc import Misc
 from basil.dut import Dut
 start = time.clock()
-chip_id='BN014'
+chip_id='RD53B_SLDO_BN001'
 flavor='IV' #switch Vin!!
 filepath = "/output/" + chip_id + "/" + flavor
 fileName = flavor + "_" + chip_id + "_"
@@ -28,8 +28,8 @@ os.chdir(os.path.normpath(os.getcwd() + filepath))
 print os.getcwd()
 iv = SLDO.IV()
 iv.shutdown_tti()
-for i in range(0,10):
-    iv.scan_IV(fileName, 2, 1, 120, 0.01, run_number = i, remote_sense= False)
+for i in range(0,1):
+    iv.scan_IV(fileName, 2, 1, 200, 0.01, run_number = i, remote_sense= False)
 
 #    iv.current_mirror(fileName, 2, 1, 200, 0.01, run_number = i, remote_sense = False, force_bandgap= True)
     

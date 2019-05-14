@@ -101,48 +101,45 @@ class IV(object):
             f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
             f.writerow(['Input current [A]', 'Input voltage [V]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Mirrored Current [V]'])
 
-            dut['VDDD'].set_current_limit(0)
+            dut['VDD1'].set_current_limit(0)
             time.sleep(1)
-            inputCurr = 0.001
-            dut['VDDD'].set_voltage(1.99)
+            iin = 0.001
+            dut['VDD1'].set_voltage(2)
             time.sleep(0.5)
-            analog_input_voltage = dut['VDDD'].get_voltage()
+            analog_input_voltage = dut['VDD1'].get_voltage()
             time.sleep(0.5)
-            dut['VDDD'].reset_trip()
+            dut['VDD1'].reset_trip()
             time.sleep(0.5)
-            dut['VDDD'].set_enable(on=True)
+            dut['VDD1'].set_enable(on=True)
             time.sleep(1)
             for x in range(0, int(steps)):
                 
-                logging.info("Setting Current")
-                dut['VDDD'].set_current_limit(inputCurr)
+                logging.info("Setting Current to %f" % iin)
+                dut['VDD1'].set_current_limit(iin)
                 time.sleep(0.5)
 
                 logging.info("measuring ...")
-                input_current = misc.measure_voltage(1, 'Sourcemeter2')[0]
-                input_voltage = dut['VDDD'].get_voltage()
+                input_voltage = dut['VDD1'].get_voltage()
                 time.sleep(0.5)
-                vdd = misc.measure_voltage(1, 'Multimeter1')[0]
-                voffs = misc.measure_voltage(2, 'Sourcemeter1')[0]
-                vref = misc.measure_voltage(1, 'Sourcemeter1')[0]
-                mirrored_current = misc.measure_voltage(2, 'Sourcemeter2')[0]
+                vdd = misc.measure_voltage(1, 'Sourcemeter1')[0]
+                vref = misc.measure_voltage(2, 'Sourcemeter1')[0]
+                voff = misc.measure_voltage(2, 'Sourcemeter2')[0]
+                vrext = misc.measure_voltage(1, 'Sourcemeter2')[0]
                 
-                preliminiary_mirrored_current = mirrored_current / 817
-                preliminary_input_current = input_current / 0.01
-                logging.info("Digital input current is %r A" % preliminary_input_current)
+                preliminiary_mirrored_current = vrext / 800
                 logging.info("Mirrored current is %r A" % preliminiary_mirrored_current)
                 logging.info("Digital input voltage is %r V" % input_voltage)
                 logging.info("VDD is %r V" % vdd)
                 logging.info("Vref is %r V" % vref)
-                logging.info("Voffs is %r V" % voffs)
+                logging.info("Voffs is %r V" % voff)
 
 
 
-                misc.data.append([input_current, input_voltage, vdd, vref, voffs, mirrored_current])
+                misc.data.append([iin, input_voltage, vdd, vref, voff, vrext])
                 f.writerow(misc.data[-1])
                 
-                inputCurr += stepSize
-                if float(inputCurr) > float(max_Iin) or float(input_voltage) >= 1.999 or float(analog_input_voltage) >= 1.999:
+                iin += stepSize
+                if float(iin) > float(max_Iin) or float(input_voltage) >= 1.999 or float(analog_input_voltage) >= 1.999:
                     break
                 logging.info("Next step")
 
@@ -152,7 +149,7 @@ class IV(object):
         misc.reset(2, 'Sourcemeter1')
         misc.reset(1, 'Sourcemeter2')
         misc.reset(2, 'Sourcemeter2')
-        return inputCurr
+        return iin
     
     def scan_load_reg(self, file_name, iin, max_iload, steps, stepSize, run_number = 0):
         '''
@@ -255,9 +252,9 @@ class IV(object):
         misc.reset(1, 'Multimeter1')
     
     def shutdown_tti(self):
-        dut['VDDD'].set_enable(on=False)
+        dut['VDD1'].set_enable(on=False)
         time.sleep(0.5)
-        dut['VDDA'].set_enable(on=False)
+        dut['VDD2'].set_enable(on=False)
         
     def working_point(self):
         misc.reset(1, 'Sourcemeter1')
@@ -280,13 +277,13 @@ class IV(object):
         dut['Sourcemeter1'].on(channel=2)
         dut['Sourcemeter2'].on(channel=1)
         dut['Sourcemeter2'].on(channel=2)
-        dut['VDDA'].set_current_limit(0.6)
+        dut['VDD2'].set_current_limit(0.6)
         time.sleep(1)
-        dut['VDDD'].set_current_limit(0.6)
+        dut['VDD1'].set_current_limit(0.6)
         inputCurr = 0.001
-        dut['VDDA'].set_voltage(2)
+        dut['VDD2'].set_voltage(2)
         time.sleep(0.5)
-        dut['VDDD'].set_voltage(2) 
+        dut['VDD1'].set_voltage(2) 
     
 
 
@@ -295,4 +292,8 @@ if __name__ == "__main__":
     iv = IV()
     print dut['Sourcemeter1'].get_name()
     print dut['Sourcemeter2'].get_name()
-    print dut['Multimeter1'].get_name()
+    print dut['Sourcemeter1'].get_voltage(channel = 1)
+    print dut['Sourcemeter1'].get_voltage(channel = 2)
+    print dut['Sourcemeter2'].get_voltage(channel = 1)
+    print dut['Sourcemeter2'].get_voltage(channel = 2)
+    dut['VDD1'].set_current_limit(0.5)
