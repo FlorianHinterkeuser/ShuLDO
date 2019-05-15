@@ -3,7 +3,8 @@ output/
 
 .project
 .nfs*
-.yaml
+periphery.yaml
+devices.yaml
 
 # tar and compressed tar files
 *.tar

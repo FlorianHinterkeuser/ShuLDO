@@ -200,14 +200,14 @@ class IV(object):
             f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
             f.writerow(['Input voltage [V]', 'Load current [A]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Vpre [V]', 'Vbg [V]'])
 
-            dut['VDDD'].set_current_limit(iin)
+            dut['VDD1'].set_current_limit(iin)
             time.sleep(1)
             iload = 0
-            dut['VDDD'].set_voltage(1.99)
+            dut['VDD1'].set_voltage(1.99)
             time.sleep(0.5)
-            dut['VDDD'].reset_trip()
+            dut['VDD1'].reset_trip()
             time.sleep(0.5)
-            dut['VDDD'].set_enable(on=True)
+            dut['VDD1'].set_enable(on=True)
             time.sleep(1)
             for x in range(0, int(steps)):
                 
@@ -216,7 +216,7 @@ class IV(object):
                 time.sleep(1)
 
                 logging.info("measuring ...")
-                input_voltage = dut['VDDD'].get_voltage()
+                input_voltage = dut['VDD1'].get_voltage()
                 time.sleep(0.5)
                 vdd = misc.measure_voltage(1, 'Multimeter1')[0]
                 voffs = misc.measure_voltage(2, 'Sourcemeter1')[0]
@@ -281,19 +281,14 @@ class IV(object):
         time.sleep(1)
         dut['VDD1'].set_current_limit(0.6)
         inputCurr = 0.001
-        dut['VDD2'].set_voltage(2)
+        dut['VDD2'].set_voltage(0.55)
         time.sleep(0.5)
-        dut['VDD1'].set_voltage(2) 
-    
+        dut['VDD1'].set_voltage(2)
+
 
 
 if __name__ == "__main__":
-    powersupply_conf = 'periphery.yaml'
     iv = IV()
     print dut['Sourcemeter1'].get_name()
     print dut['Sourcemeter2'].get_name()
-    print dut['Sourcemeter1'].get_voltage(channel = 1)
-    print dut['Sourcemeter1'].get_voltage(channel = 2)
-    print dut['Sourcemeter2'].get_voltage(channel = 1)
-    print dut['Sourcemeter2'].get_voltage(channel = 2)
-    dut['VDD1'].set_current_limit(0.5)
+#    dut['VDD1'].set_current_limit(0.5)
