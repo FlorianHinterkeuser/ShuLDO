@@ -5,6 +5,7 @@ output/
 .nfs*
 periphery.yaml
 devices.yaml
+*.yaml
 
 # tar and compressed tar files
 *.tar
