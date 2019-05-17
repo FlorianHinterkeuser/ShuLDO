@@ -18,7 +18,7 @@ import SLDO as SLDO
 from scan_misc import Misc
 from basil.dut import Dut
 start = time.clock()
-chip_id='RD53B_SLDO_BN001'
+chip_id='RD53B_SLDO_BN016'
 flavor='IV' #switch Vin!!
 filepath = "/output/" + chip_id + "/" + flavor
 fileName = flavor + "_" + chip_id + "_"
@@ -28,16 +28,12 @@ os.chdir(os.path.normpath(os.getcwd() + filepath))
 print os.getcwd()
 iv = SLDO.IV()
 iv.shutdown_tti()
-for i in range(0,1):
-    iv.scan_IV(fileName, 2, 1, 200, 0.01, run_number = i, remote_sense= False)
-
-#    iv.current_mirror(fileName, 2, 1, 200, 0.01, run_number = i, remote_sense = False, force_bandgap= True)
-    
-#    iv.scan_current_balancing(fileName, 2.5, 1, 200, 0.01, run_number = i, remote_sense= False)
-
-#    iv.scan_current_balancing_doublechip(file_name = fileName, max_Iin=5, inputPolarity=1, steps=499, stepSize=0.01, run_number = i, remote_sense = False, invert = True)
-
-#    iv.scan_load_reg(fileName, 0.6, 0.61, 100, 0.01, run_number = i)
+n_runs = 1
+for i in range(0,n_runs):
+    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.45)
+    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i+n_runs, remote_sense= False, OVP_on=True, OVP_limit=0.5)
+    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i+2*n_runs, remote_sense= False, OVP_on=True, OVP_limit=0.55)
+    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i+3*n_runs, remote_sense= False, OVP_on=True, OVP_limit=0.6)
 iv.working_point()
 iv.shutdown_tti()
 stop = time.clock()

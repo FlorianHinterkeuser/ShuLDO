@@ -52,16 +52,16 @@ class IV(object):
                 dut[smu].set_current(0)
                 dut[smu].on()
     
-    def scan_IV(self, file_name, max_Iin, inputPolarity, steps, stepSize, run_number = 0, remote_sense = True):
+    def scan_IV(self, file_name, max_Iin, inputPolarity, steps, stepSize, run_number = 0, remote_sense = True, OVP_on = False, OVP_limit = 0.5):
         '''
         IV-scan in current supply mode.
         '''
         logging.info("Starting ...")
 
-        misc.reset(1, 'Sourcemeter1')   #Iin
-        misc.reset(2, 'Sourcemeter1')   #Imirror
-        misc.reset(1, 'Sourcemeter2')   #Vref
-        misc.reset(2, 'Sourcemeter2')   #Voffs
+        misc.reset(1, 'Sourcemeter1')   #Vout
+        misc.reset(2, 'Sourcemeter1')   #vref
+        misc.reset(1, 'Sourcemeter2')   #Voff
+        misc.reset(2, 'Sourcemeter2')   #Vrext
  
         misc.set_source_mode('CURR', 1, 'Sourcemeter1')
         misc.set_source_mode('CURR', 2, 'Sourcemeter1')
@@ -106,10 +106,12 @@ class IV(object):
             iin = 0.001
             dut['VDD1'].set_voltage(2)
             time.sleep(0.5)
-            analog_input_voltage = dut['VDD1'].get_voltage()
-            time.sleep(0.5)
             dut['VDD1'].reset_trip()
             time.sleep(0.5)
+            if OVP_on:
+                dut['VDD2'].set_voltage(OVP_limit)
+                time.sleep(0.5)
+                dut['VDD2'].set_enable(on=True)
             dut['VDD1'].set_enable(on=True)
             time.sleep(1)
             for x in range(0, int(steps)):
@@ -123,8 +125,8 @@ class IV(object):
                 time.sleep(0.5)
                 vdd = misc.measure_voltage(1, 'Sourcemeter1')[0]
                 vref = misc.measure_voltage(2, 'Sourcemeter1')[0]
-                voff = misc.measure_voltage(2, 'Sourcemeter2')[0]
-                vrext = misc.measure_voltage(1, 'Sourcemeter2')[0]
+                voff = misc.measure_voltage(1, 'Sourcemeter2')[0]
+                vrext = misc.measure_voltage(2, 'Sourcemeter2')[0]
                 
                 preliminiary_mirrored_current = vrext / 800
                 logging.info("Mirrored current is %r A" % preliminiary_mirrored_current)
@@ -139,7 +141,7 @@ class IV(object):
                 f.writerow(misc.data[-1])
                 
                 iin += stepSize
-                if float(iin) > float(max_Iin) or float(input_voltage) >= 1.999 or float(analog_input_voltage) >= 1.999:
+                if float(iin) > float(max_Iin) or float(input_voltage) >= 1.999:
                     break
                 logging.info("Next step")
 
@@ -288,7 +290,9 @@ class IV(object):
 
 
 if __name__ == "__main__":
+    dut = Dut('periphery.yaml')
+    dut.init()
+    misc = Misc(dut=dut)
     iv = IV()
-    print dut['Sourcemeter1'].get_name()
-    print dut['Sourcemeter2'].get_name()
-#    dut['VDD1'].set_current_limit(0.5)
+    print(dut['Sourcemeter1'].get_name())
+    print(dut['Sourcemeter2'].get_name())
