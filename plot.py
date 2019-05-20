@@ -161,10 +161,17 @@ class Chip_overview(object):
         self.averaging(filelist)
     
         for i, files in enumerate(filelist):
-            collected_data[files] = Analysis.file_to_array(files)
+            collected_data[files] = self.file_to_array(files)
             self.scan_parameter.append(i)
         self.plot_iv(data = collected_data)
         self.plot_iv_spread()
+
+    def file_to_array(self, file):
+        header = np.genfromtxt(file, dtype=None, delimiter = ',', max_rows = 1)
+        data = np.genfromtxt(file, float, delimiter=',', skip_header=1)
+        rows = len(data)
+        cols = len(data[0])
+        return {'header': header, 'data': data, 'rows' : rows, 'cols' : cols}
 
     
 if __name__ == "__main__":
