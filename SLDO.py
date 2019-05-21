@@ -151,7 +151,107 @@ class IV(object):
         misc.reset(1, 'Sourcemeter2')
         misc.reset(2, 'Sourcemeter2')
         return iin
-    
+
+    def scan_IV2(self, file_name, max_Iin, inputPolarity, steps, stepSize, run_number=0, remote_sense=True,
+                OVP_on=False, OVP_limit=0.5):
+        '''
+        IV-scan in current supply mode.
+        '''
+        logging.info("Starting ...")
+
+        misc.reset(1, 'Sourcemeter1')  # Vout
+        misc.reset(2, 'Sourcemeter1')  # vref
+        misc.reset(1, 'Sourcemeter2')  # Voff
+        misc.reset(2, 'Sourcemeter2')  # Vrext
+
+        misc.set_source_mode('CURR', 1, 'Sourcemeter1')
+        misc.set_source_mode('CURR', 2, 'Sourcemeter1')
+        misc.set_source_mode('CURR', 1, 'Sourcemeter2')
+        misc.set_source_mode('CURR', 2, 'Sourcemeter2')
+
+        dut['Sourcemeter1'].set_voltage_limit(2, channel=1)
+        dut['Sourcemeter1'].set_voltage_limit(2, channel=2)
+        dut['Sourcemeter2'].set_voltage_limit(2, channel=1)
+        dut['Sourcemeter2'].set_voltage_limit(2, channel=2)
+
+        #        dut['Sourcemeter1'].set_autorange(channel = 1)
+        #        dut['Sourcemeter1'].set_autorange(channel = 2)
+        #        dut['Sourcemeter2'].set_autorange(channel = 1)
+        #        dut['Sourcemeter2'].set_autorange(channel = 2)
+        #        dut['Sourcemeter3'].set_autorange()
+
+        dut['Sourcemeter1'].set_current(0, channel=1)
+        dut['Sourcemeter1'].set_current(0, channel=2)
+        dut['Sourcemeter2'].set_current(0, channel=1)
+        dut['Sourcemeter2'].set_current(0, channel=2)
+
+        dut['Sourcemeter1'].on(channel=1)
+        dut['Sourcemeter1'].on(channel=2)
+        dut['Sourcemeter2'].on(channel=1)
+        dut['Sourcemeter2'].on(channel=2)
+
+        fncounter = 1
+        filename = file_name + "OVP_" + str(OVP_limit) + "V_" + str(run_number) + ".csv"
+        while os.path.isfile(file_name):
+            filename = filename.split('.')[0]
+            filename = filename + "_" + str(fncounter) + ".csv"
+            fncounter = fncounter + 1
+
+        with open(filename, 'wb') as outfile:
+            f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
+            f.writerow(['Input current [A]', 'Input voltage [V]', 'VDD [V]', 'Vrefpre [V]', 'Voutpre [V]',
+                            'Vbandgap [V]', 'dIin [A]', 'dVin [V]', 'dVDD [V]', 'dVrefpre [V]', 'dVoutpre [V]',
+                            'dVbandgap [V]'])
+
+            dut['VDD1'].set_current_limit(0)
+            time.sleep(1)
+            iin = 0.001
+            dut['VDD1'].set_voltage(2)
+            time.sleep(0.5)
+            dut['VDD1'].reset_trip()
+            time.sleep(0.5)
+            if OVP_on:
+                dut['VDD2'].set_voltage(OVP_limit)
+                time.sleep(0.5)
+                dut['VDD2'].set_enable(on=True)
+            dut['VDD1'].set_enable(on=True)
+            time.sleep(1)
+            for x in range(0, int(steps)):
+
+                logging.info("Setting Current to %f" % iin)
+                dut['VDD1'].set_current_limit(iin)
+                time.sleep(0.5)
+
+                logging.info("measuring ...")
+                input_voltage = dut['VDD1'].get_voltage()
+                time.sleep(0.5)
+                vdd = misc.measure_voltage(1, 'Sourcemeter1')
+                vrefpre = misc.measure_voltage(2, 'Sourcemeter1')
+                voutpre = misc.measure_voltage(2, 'Sourcemeter2')
+                vbandgap = misc.measure_voltage(1, 'Sourcemeter2')
+
+                logging.info("Vbandgap is %r V" % vbandgap)
+                logging.info("Digital input voltage is %r V" % input_voltage)
+                logging.info("VDD is %r V" % vdd[0])
+                logging.info("Vrefpre is %r V" % vrefpre)
+                logging.info("Voutpre is %r V" % voutpre)
+
+                misc.data.append([iin, input_voltage, vdd[0], vrefpre[0], voutpre[0], vbandgap[0], iin * 0.001, input_voltage * 0.001, vdd[1], vrefpre[1], voutpre[1], vbandgap[1]])
+                f.writerow(misc.data[-1])
+
+                iin += stepSize
+                if float(iin) > float(max_Iin) or float(input_voltage) >= 1.999:
+                    break
+                logging.info("Next step")
+
+        logging.info('Measurement finished.')
+
+        misc.reset(1, 'Sourcemeter1')
+        misc.reset(2, 'Sourcemeter1')
+        misc.reset(1, 'Sourcemeter2')
+        misc.reset(2, 'Sourcemeter2')
+        return iin
+
     def scan_load_reg(self, file_name, iin, max_iload, steps, stepSize, run_number = 0):
         '''
         IV-scan in current supply mode.
