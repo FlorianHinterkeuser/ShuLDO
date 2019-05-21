@@ -81,6 +81,52 @@ class Chip_overview(object):
             raise ValueError
         logging.info("Finished.")
         plt.close()
+
+    def plot_iv2(self, data = None, flavor = "IV2", filename = "file", fit_length = 50):
+        fig = plt.figure(1)
+        ax1 = fig.add_subplot(111)
+        ax2 = ax1.twinx()
+        ax1.axis([0,1.2,0,2.1])
+        ax2.axis([0,1.2,0,1200])
+        for key in data.keys():
+            datas = data[key]['data']
+            iin, vin, vout, vrefpre, voutpre, vbandgap = [], [], [], [], [], []
+
+            logging.info("Plotting averaged values")
+            for row in datas:
+                iin.append((row[0]))
+                vin.append(row[1])
+                vout.append(row[2])
+                vrefpre.append(row[3])
+                voutpre.append(row[4])
+                vbandgap.append(row[5])
+
+            ax1.plot(iin, vin, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='red', label='Input Voltage')
+            ax1.plot(iin, voutpre, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='blue', label='Preregulator Output Voltage')
+            ax1.plot(iin, vbandgap, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='green', label='Bandgap Voltage')
+            ax1.plot(iin, vrefpre, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='olive', label='Preregulator Reference Voltage')
+            ax1.plot(iin, vout, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='purple', label='Output Voltage')
+
+
+        ax1.set_xlabel("Input Current / A")
+        ax1.set_ylabel("Voltage / V")
+
+        legend_dict = { 'Input Voltage' : 'red', 'Prereg Output Voltage' : 'blue', 'Preregulator Reference Voltage' : 'olive', 'Output Voltage' : 'purple', 'Bandgap Voltage' : 'green'}
+        colors = legend_dict.values()
+        labels = legend_dict.keys()
+        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+
+        plt.legend(lines, labels, loc = 2)
+        plt.grid()
+        logging.info("Saving plot %s" % filename)
+        try:
+            plt.savefig(flavor + '.pdf')
+            plt.savefig(flavor + '.png')
+        except:
+            logging.error("Plot %s could not be saved" % filename)
+            raise ValueError
+        logging.info("Finished.")
+        plt.close()
     
     
     def plot_iv_spread(self):
@@ -157,15 +203,16 @@ class Chip_overview(object):
             for name in files:
                 if 'csv' in name and 'BN' in name:
                     filelist.append(name)
-                else:
-                    raise RuntimeError
         self.averaging(filelist)
     
         for i, files in enumerate(filelist):
             collected_data[files] = self.file_to_array(files)
             self.scan_parameter.append(i)
-        self.plot_iv(data = collected_data)
-        self.plot_iv_spread()
+        if flavor == 'IV':
+            self.plot_iv(data = collected_data)
+            self.plot_iv_spread()
+        elif flavor == 'IV2':
+            self.plot_iv2(data=collected_data, flavor=flavor)
 
     def file_to_array(self, file):
         header = np.genfromtxt(file, dtype=None, delimiter = ',', max_rows = 1)
