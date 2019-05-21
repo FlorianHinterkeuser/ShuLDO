@@ -19,26 +19,27 @@ from scan_misc import Misc
 from basil.dut import Dut
 start = time.clock()
 chip_id='RD53B_SLDO_BN016'
-flavor='IV' #switch Vin!!
+flavor='IV2' #switch Vin!!
 filepath = "/output/" + chip_id + "/" + flavor
 fileName = flavor + "_" + chip_id + "_"
 if not os.path.exists(os.path.normpath(os.getcwd() + filepath)):
     os.makedirs(os.path.normpath(os.getcwd() + filepath))
 os.chdir(os.path.normpath(os.getcwd() + filepath))
-print os.getcwd()
 iv = SLDO.IV()
 iv.shutdown_tti()
 n_runs = 1
 for i in range(0,n_runs):
-    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.45)
-    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i+n_runs, remote_sense= False, OVP_on=True, OVP_limit=0.5)
-    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i+2*n_runs, remote_sense= False, OVP_on=True, OVP_limit=0.55)
-    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i+3*n_runs, remote_sense= False, OVP_on=True, OVP_limit=0.6)
+    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.45)
+    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.475)
+    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.5)
+    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.525)
+    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.55)
+    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.575)
+    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.6)
 iv.working_point()
 iv.shutdown_tti()
 stop = time.clock()
 runtime = stop-start
-print "Runtime: %f" % runtime
 
 #===============================================================================
 # def FileAuf(filename):

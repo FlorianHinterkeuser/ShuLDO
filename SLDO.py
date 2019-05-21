@@ -90,8 +90,7 @@ class IV(object):
         dut['Sourcemeter2'].on(channel=2)
 
         fncounter=1
-        filename = file_name + str(run_number) + ".csv"
-        print "writing to file %s" %filename
+        filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
         while os.path.isfile(file_name):
             filename = filename.split('.')[0]
             filename = filename + "_" + str(fncounter) + ".csv"
@@ -192,7 +191,7 @@ class IV(object):
 
         fncounter=1
         filename = file_name + str(run_number) + ".csv"
-        print "writing to file %s" %filename
+
         while os.path.isfile(file_name):
             filename = filename.split('.')[0]
             filename = filename + "_" + str(fncounter) + ".csv"
@@ -294,5 +293,3 @@ if __name__ == "__main__":
     dut.init()
     misc = Misc(dut=dut)
     iv = IV()
-    print(dut['Sourcemeter1'].get_name())
-    print(dut['Sourcemeter2'].get_name())

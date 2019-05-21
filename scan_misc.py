@@ -11,6 +11,7 @@ import csv
 import matplotlib.pyplot as plt
 import multiprocessing
 import os.path
+import numpy as np
 
 from basil.dut import Dut
 from pyexpat import model
@@ -20,8 +21,8 @@ class Misc(object):
     def __init__(self, dut, max_current=1, minimum_delay=0.1):
         self.max_current = max_current
         self.minimum_delay = minimum_delay
-        self.dut=dut
-        self.data=[]
+        self.dut = dut
+        self.data = []
         self.typ = None
         
         
@@ -43,7 +44,6 @@ class Misc(object):
         self.typ = [None]*len(device)
         for i in range(0, len(device)):
             name_arr[i] = str(self.dut[device[i]].get_name())
-            #print name_arr[i]
             if 'Keithley' in name_arr[i] or 'KEITHLEY' in name_arr[i]:
                 vendor[i]= 'keithley'
                 if 'Model 2410' in name_arr[i] or "MODEL 2410" in name_arr[i]:
@@ -213,7 +213,6 @@ class Misc(object):
                     self.dut[device[i]].set_voltage_limit(0.01)
                     self.dut[device[i]].set_current(0)
                 else:
-                    print "ops"
                     return 'False'
                 self.dut[device[i]].off()
             elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
@@ -221,7 +220,7 @@ class Misc(object):
             elif self.typ[i] == 'keithley_2230G':
                 self.dut[device[i]].reset(channel=channel)
             else:
-                print "Reset data not found"    
+                     raise RuntimeWarning
         return set_mode
 
     def dummy(self,n):
@@ -237,10 +236,8 @@ if __name__ == '__main__':
     '''
     Test section
     '''
-    dut = Dut('devices.yaml')
+    dut = Dut('periphery.yaml')
     dut.init()
-    print dut['Sourcemeter1'].get_name()
-    print dut['Sourcemeter2'].get_name()
 
     misc = Misc(dut=dut)
 #    misc.reset(1, 'Sourcemeter1')                       #misc.reset(channel, device*)

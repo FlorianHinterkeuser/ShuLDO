@@ -26,7 +26,7 @@ class Chip_overview(object):
         
             logging.info("Plotting averaged values")
             for row in datas:
-                iin.append((row[0]/0.01))
+                iin.append((row[0]))
                 vin.append(row[1])
                 vout.append(row[2])
                 vref.append(row[3])
@@ -136,21 +136,20 @@ class Chip_overview(object):
         interpreted_data = np.array([interpreted_data_mean, interpreted_data_dev])
     
 
-        with open('average.csv', 'w', newline = '') as csvfile:
+        with open('average.csv', 'w') as csvfile:
             spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
             spamwriter.writerow(header)
             for row in interpreted_data[0]:
                 spamwriter.writerow(row)
-        with open('average_dev.csv', 'w', newline='') as csvfile:
+        with open('average_dev.csv', 'w') as csvfile:
             spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
             spamwriter.writerow(header)
             for row in interpreted_data[1]:
                 spamwriter.writerow(row)
 
-    def create_iv_overview(self, **kwargs):
+    def create_iv_overview(self, chip_id, flavor, **kwargs):
         self.mirror = []
-        os.chdir(normpath(root_path + "/" + "SLDO Collected Data/IV"))
-        #os.chdir(normpath(root_path + "/" + "output/BN001/IV"))
+        os.chdir(normpath(root_path + "/" + "output/" + chip_id + "/" + flavor))
         filelist, self.vin_fits_vdd, self.voffs_fits_vdd, self.scan_parameter = [],  [],  [],  []
         collected_data = {}
         
@@ -158,6 +157,8 @@ class Chip_overview(object):
             for name in files:
                 if 'csv' in name and 'BN' in name:
                     filelist.append(name)
+                else:
+                    raise RuntimeError
         self.averaging(filelist)
     
         for i, files in enumerate(filelist):
@@ -177,7 +178,7 @@ class Chip_overview(object):
 if __name__ == "__main__":
     root_path = os.getcwd()
     chips = Chip_overview()
-    chips.create_iv_overview()
+    chip_id = 'test'
+    flavor = 'IV'
+    chips.create_iv_overview(chip_id, flavor)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
-    print(chips.mirror)
-    print(np.mean(chips.mirror))
