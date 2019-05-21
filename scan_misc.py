@@ -73,31 +73,23 @@ class Misc(object):
         '''
         
         self.get_device_type(*device)
-        current = [None]*len(device)
-        measurement = [None]*len(device)
+        number = 20
+        current = [0.0, 0.0]
+        measurement = np.empty(number)
         for i in range(0, len(device)):
             if self.typ[i] == 'keithley_2410' or self.typ[i] == 'keithley_2400' or self.typ[i] == 'keithley_2410':
-                current[i] = float(self.dut[device[i]].get_current().split(',')[1])
-                for j in range(0, 10):                                                            #Debouncing to ensure stable measurement
-                    measurement[i] = float(self.dut[device[i]].get_current().split(',')[1])
-                    if abs(abs(measurement[i])/abs(current[i])-1) <= 0.01:
-                        break
-                current[i] = measurement[i]
+                for j in range(0, number):
+                    measurement[j] = float(self.dut[device[i]].get_current().split(',')[1])
             elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
-                current[i] = float(self.dut[device[i]].get_current(channel = channel))
-                for j in range(0, 10):                                                            #Debouncing to ensure stable measurement
-                    measurement[i] = float(self.dut[device[i]].get_current(channel=channel))
-                    if abs(abs(measurement[i])/abs(current[i])-1) <= 0.01:
-                        break
+                for j in range(0, number):
+                    measurement[j] = float(self.dut[device[i]].get_current(channel=channel))
             elif self.typ[i] == 'keithley_2230G':
-                current[i] = float(self.dut[device[i]].get_current(channel = channel))
-                for j in range(0, 10):                                                            #Debouncing to ensure stable measurement
-                    measurement[i] = float(self.dut[device[i]].get_current(channel=channel))
-                    if abs(abs(measurement[i])/abs(current[i])-1) <= 0.01:
-                        break
-            #print j
+                for j in range(0, number):
+                    measurement[j] = float(self.dut[device[i]].get_current(channel=channel))
             else:
                 raise ValueError
+            current[0] = np.mean(measurement)
+            current[1] = np.std(measurement)
         return current
         
 
@@ -106,55 +98,45 @@ class Misc(object):
         See get_current_reading().
         '''
         self.get_device_type(*device)
-        voltage = [None]*len(device)
-        measurement = [None]*len(device)
-        for i in range(0, len(device)):
-            if self.typ[i] == 'keithley_2410' or self.typ[i] == 'keithley_2000':
-                voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
-                while voltage[i] == 0:
-                    voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
-                    if voltage[i] != 0:
+        number = 20
+        voltage = [0.0, 0.0]
+        measurement = np.empty(number)
+        i = 0
+
+        if self.typ[i] == 'keithley_2410' or self.typ[i] == 'keithley_2000':
+            for j in range(0, number):
+                measurement[j] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                while measurement[j] == 0:
+                    measurement[j] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    if measurement[j] != 0:
                         break
-                for j in range(0, 10):
-                    measurement[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
-                    if abs(abs(measurement[i])/abs(voltage[i]+0.0001)-1) <= 0.01:
+        elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+            for j in range(0, number):
+                measurement[j] = float(self.dut[device[i]].get_voltage(channel=channel).split(',')[0])
+                while measurement[j] == 0:
+                    measurement[j] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    if measurement[j] != 0:
                         break
-                    voltage[i] = measurement[i]
-            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
-                voltage[i] = float(self.dut[device[i]].get_voltage(channel=channel))
-                while voltage[i] == 0:
-                    voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
-                    if voltage[i] != 0:
+        elif self.typ[i] == 'keithley_2230G':
+            for j in range(0, number):
+                measurement[j] = float(self.dut[device[i]].get_voltage(channel=channel).split(',')[0])
+                while measurement[j] == 0:
+                    measurement[j] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    if measurement[j] != 0:
                         break
-                for j in range(0, 10):
-                    measurement[i] = float(self.dut[device[i]].get_voltage(channel=channel).split(',')[0])
-                    if abs(abs(measurement[i])/abs(voltage[i]+0.0001)-1) <= 0.01:
+        elif self.typ[i] == 'keithley_2400':
+            for j in range(0, number):
+                measurement[j] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                self.dut[device[i]].set_voltage_limit(2)
+                while measurement[j] == 0:
+                    measurement[j] = float(self.dut[device[i]].get_voltage().split(',')[0])
+                    if measurement[j] != 0:
                         break
-                    voltage[i] = measurement[i]
-            elif self.typ[i] == 'keithley_2230G':
-                while voltage[i] == 0:
-                    voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
-                    if voltage[i] != 0:
-                        break
-                for j in range(0, 10):
-                    measurement[i] = float(self.dut[device[i]].get_voltage(channel=channel).split(',')[0])
-                    if abs(abs(measurement[i])/abs(voltage[i]+0.0001)-1) <= 0.01:
-                        break
-                    voltage[i] = measurement[i]
-            elif self.typ[i] == 'keithley_2400':
-                while voltage[i] == 0:
-                    voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
-                    if voltage[i] != 0:
-                        break
-                self.dut[device[i]].set_voltage_limit(2) 
-                for j in range(0, 10):
-                    measurement[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
-                    self.dut[device[i]].set_voltage_limit(2) 
-                    if abs(abs(measurement[i])/abs(voltage[i]+0.0001)-1) <= 0.01:
-                        break
-                    voltage[i] = measurement[i]            
-            else:
-                raise ValueError
+                self.dut[device[i]].set_voltage_limit(2)
+        else:
+            raise ValueError
+        voltage[0] = np.mean(measurement)
+        voltage[1] = np.std(measurement)
         return voltage
         
     

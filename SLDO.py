@@ -98,7 +98,7 @@ class IV(object):
 
         with open(filename, 'wb') as outfile:
             f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
-            f.writerow(['Input current [A]', 'Input voltage [V]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Mirrored Current [V]'])
+            f.writerow(['Input current [A]', 'Input voltage [V]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Mirrored Current [V]', 'dIin [A]', 'dVin [V]', 'dVDD [V]', 'dVref [V]', 'dVoffs [V]', 'dImirror [V]'])
 
             dut['VDD1'].set_current_limit(0)
             time.sleep(1)
@@ -122,21 +122,21 @@ class IV(object):
                 logging.info("measuring ...")
                 input_voltage = dut['VDD1'].get_voltage()
                 time.sleep(0.5)
-                vdd = misc.measure_voltage(1, 'Sourcemeter1')[0]
-                vref = misc.measure_voltage(2, 'Sourcemeter1')[0]
-                voff = misc.measure_voltage(1, 'Sourcemeter2')[0]
-                vrext = misc.measure_voltage(2, 'Sourcemeter2')[0]
+                vdd = misc.measure_voltage(1, 'Sourcemeter1')
+                vref = misc.measure_voltage(2, 'Sourcemeter1')
+                voff = misc.measure_voltage(2, 'Sourcemeter2')
+                vrext = misc.measure_voltage(1, 'Sourcemeter2')
                 
-                preliminiary_mirrored_current = vrext / 800
+                preliminiary_mirrored_current = vrext[0] / 800
                 logging.info("Mirrored current is %r A" % preliminiary_mirrored_current)
                 logging.info("Digital input voltage is %r V" % input_voltage)
-                logging.info("VDD is %r V" % vdd)
+                logging.info("VDD is %r V" % vdd[0])
                 logging.info("Vref is %r V" % vref)
                 logging.info("Voffs is %r V" % voff)
 
 
 
-                misc.data.append([iin, input_voltage, vdd, vref, voff, vrext])
+                misc.data.append([iin, input_voltage, vdd[0], vref[0], voff[0], vrext[0], iin*0.001 , input_voltage*0.001,vdd[1], vref[1], voff[1], vrext[1]])
                 f.writerow(misc.data[-1])
                 
                 iin += stepSize
