@@ -90,7 +90,10 @@ class IV(object):
         dut['Sourcemeter2'].on(channel=2)
 
         fncounter=1
-        filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
+        if OVP_on:
+            filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
+        else:
+            filename = file_name + "OVP_int_" + str(run_number) + ".csv"
         while os.path.isfile(file_name):
             filename = filename.split('.')[0]
             filename = filename + "_" + str(fncounter) + ".csv"
@@ -191,7 +194,12 @@ class IV(object):
         dut['Sourcemeter2'].on(channel=2)
 
         fncounter = 1
-        filename = file_name + "OVP_" + str(OVP_limit) + "V_" + str(run_number) + ".csv"
+        
+        if OVP_on:
+            filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
+        else:
+            filename = file_name + "OVP_int_" + str(run_number) + ".csv"
+
         while os.path.isfile(file_name):
             filename = filename.split('.')[0]
             filename = filename + "_" + str(fncounter) + ".csv"
