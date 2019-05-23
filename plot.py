@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import Analysis
 
 class Chip_overview(object):
-    
-    def plot_iv(self, data = None, filename = "file", fit_length = 50):
+
+    def plot_iv(self, data = None, chip = '000', flavor = 'IV', filename = "file", fit_length = 50):
         fig = plt.figure(1)
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
@@ -74,15 +74,15 @@ class Chip_overview(object):
         plt.grid()
         logging.info("Saving plot %s" % filename)
         try:
-            plt.savefig('Testlauf.pdf')
-            plt.savefig('Testlauf.png')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + '.pdf')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + '.png')
         except:
             logging.error("Plot %s could not be saved" % filename)
             raise ValueError
         logging.info("Finished.")
         plt.close()
 
-    def plot_iv2(self, data = None, flavor = "IV2", filename = "file", fit_length = 50):
+    def plot_iv2(self, data = None, chip = '000', flavor = "IV2", filename = "file", fit_length = 50):
         fig = plt.figure(1)
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
@@ -120,8 +120,8 @@ class Chip_overview(object):
         plt.grid()
         logging.info("Saving plot %s" % filename)
         try:
-            plt.savefig(flavor + '.pdf')
-            plt.savefig(flavor + '.png')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + '.pdf')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + '.png')
         except:
             logging.error("Plot %s could not be saved" % filename)
             raise ValueError
@@ -209,10 +209,10 @@ class Chip_overview(object):
             collected_data[files] = self.file_to_array(files)
             self.scan_parameter.append(i)
         if flavor == 'IV':
-            self.plot_iv(data = collected_data)
+            self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor)
             self.plot_iv_spread()
         elif flavor == 'IV2':
-            self.plot_iv2(data=collected_data, flavor=flavor)
+            self.plot_iv2(data=collected_data, chip = chip_id, flavor=flavor)
 
     def file_to_array(self, file):
         header = np.genfromtxt(file, dtype=None, delimiter = ',', max_rows = 1)
