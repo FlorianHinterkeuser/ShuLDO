@@ -14,7 +14,7 @@ import Analysis
 
 class Chip_overview(object):
 
-    def plot_iv(self, data = None, chip = '000', flavor = 'IV', filename = "file", fit_length = 50):
+    def plot_iv(self, data = None, chip = '000', flavor = 'IV', specifics = '', filename = "file", fit_length = 50):
         fig = plt.figure(1)
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
@@ -74,15 +74,15 @@ class Chip_overview(object):
         plt.grid()
         logging.info("Saving plot %s" % filename)
         try:
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + '.pdf')
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + '.png')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.pdf')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.png')
         except:
             logging.error("Plot %s could not be saved" % filename)
             raise ValueError
         logging.info("Finished.")
         plt.close()
 
-    def plot_iv2(self, data = None, chip = '000', flavor = "IV2", filename = "file", fit_length = 50):
+    def plot_iv2(self, data = None, chip = '000', flavor = "IV2", specifics = '', filename = "file", fit_length = 50):
         fig = plt.figure(1)
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
@@ -120,8 +120,8 @@ class Chip_overview(object):
         plt.grid()
         logging.info("Saving plot %s" % filename)
         try:
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + '.pdf')
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + '.png')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.pdf')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics +'.png')
         except:
             logging.error("Plot %s could not be saved" % filename)
             raise ValueError
@@ -193,7 +193,7 @@ class Chip_overview(object):
             for row in interpreted_data[1]:
                 spamwriter.writerow(row)
 
-    def create_iv_overview(self, chip_id, flavor, **kwargs):
+    def create_iv_overview(self, chip_id, flavor, specifics,  **kwargs):
         self.mirror = []
         os.chdir(normpath(root_path + "/output/" + chip_id + "/" + flavor))
         filelist, self.vin_fits_vdd, self.voffs_fits_vdd, self.scan_parameter = [],  [],  [],  []
@@ -201,18 +201,18 @@ class Chip_overview(object):
         
         for root, dirs, files in os.walk(".", topdown=False):
             for name in files:
-                if 'csv' in name and 'BN' in name:
+                if 'csv' in name and 'BN' in name and specifics in name:
                     filelist.append(name)
-        self.averaging(filelist)
+        #self.averaging(filelist)
     
         for i, files in enumerate(filelist):
             collected_data[files] = self.file_to_array(files)
             self.scan_parameter.append(i)
         if flavor == 'IV':
-            self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor)
+            self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
             self.plot_iv_spread()
         elif flavor == 'IV2':
-            self.plot_iv2(data=collected_data, chip = chip_id, flavor=flavor)
+            self.plot_iv2(data=collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
 
     def file_to_array(self, file):
         header = np.genfromtxt(file, dtype=None, delimiter = ',', max_rows = 1)
@@ -227,5 +227,6 @@ if __name__ == "__main__":
     chips = Chip_overview()
     chip_id = 'RD53B_SLDO_BN017'
     flavor = 'IV2'
-    chips.create_iv_overview(chip_id, flavor)
+    specifics = ''
+    chips.create_iv_overview(chip_id, flavor, specifics)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
