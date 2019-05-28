@@ -65,12 +65,12 @@ class IV(object):
  
         misc.set_source_mode('CURR', 1, 'Sourcemeter1')
         misc.set_source_mode('CURR', 2, 'Sourcemeter1')
-        misc.set_source_mode('CURR', 1, 'Sourcemeter2')
+        misc.set_source_mode('VOLT', 1, 'Sourcemeter2')
         misc.set_source_mode('CURR', 2, 'Sourcemeter2')     
  
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 1)
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
-        dut['Sourcemeter2'].set_voltage_limit(2, channel = 1)
+        dut['Sourcemeter2'].set_current_limit(1, channel = 1)
         dut['Sourcemeter2'].set_voltage_limit(2, channel = 2)
  
 #        dut['Sourcemeter1'].set_autorange(channel = 1)
@@ -81,7 +81,7 @@ class IV(object):
  
         dut['Sourcemeter1'].set_current(0, channel=1)
         dut['Sourcemeter1'].set_current(0, channel=2)
-        dut['Sourcemeter2'].set_current(0, channel=1)
+        dut['Sourcemeter2'].set_voltage(1, channel=1)
         dut['Sourcemeter2'].set_current(0, channel=2)
  
         dut['Sourcemeter1'].on(channel=1)
@@ -93,7 +93,7 @@ class IV(object):
         if OVP_on:
             filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
         else:
-            filename = file_name + "OVP_int_" + str(run_number) + ".csv"
+            filename = file_name + "OVP_ref_" + str(run_number) + ".csv"
         while os.path.isfile(file_name):
             filename = filename.split('.')[0]
             filename = filename + "_" + str(fncounter) + ".csv"
@@ -101,7 +101,7 @@ class IV(object):
 
         with open(filename, 'wb') as outfile:
             f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
-            f.writerow(['Input current [A]', 'Input voltage [V]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Mirrored Current [V]', 'dIin [A]', 'dVin [V]', 'dVDD [V]', 'dVref [V]', 'dVoffs [V]', 'dImirror [V]'])
+            f.writerow(['Input current [A]', 'Input voltage [V]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'NTC [Ohm]', 'dIin [A]', 'dVin [V]', 'dVDD [V]', 'dVref [V]', 'dVoffs [V]', 'dNTC [Ohm]'])
 
             dut['VDD1'].set_current_limit(0)
             time.sleep(1)
@@ -124,18 +124,17 @@ class IV(object):
 
                 logging.info("measuring ...")
                 input_voltage = dut['VDD1'].get_voltage()
-                time.sleep(0.5)
+#                time.sleep(0.5)
                 vdd = misc.measure_voltage(1, 'Sourcemeter1')
                 vref = misc.measure_voltage(2, 'Sourcemeter1')
                 voff = misc.measure_voltage(2, 'Sourcemeter2')
-                vrext = misc.measure_voltage(1, 'Sourcemeter2')
-                
-                preliminiary_mirrored_current = vrext[0] / 800
-                logging.info("Mirrored current is %r A" % preliminiary_mirrored_current)
-                logging.info("Digital input voltage is %r V" % input_voltage)
-                logging.info("VDD is %r V" % vdd[0])
-                logging.info("Vref is %r V" % vref)
-                logging.info("Voffs is %r V" % voff)
+                vrext = misc.measure_resistance(1, 'Sourcemeter2')
+#                preliminiary_mirrored_current = vrext[0] / 800
+#                logging.info("Mirrored current is %f Ohm" % ntc)
+#                logging.info("Digital input voltage is %r V" % input_voltage)
+#                logging.info("VDD is %r V" % vdd[0])
+#                logging.info("Vref is %r V" % vref)
+#                logging.info("Voffs is %r V" % voff)
 
 
 
@@ -151,7 +150,7 @@ class IV(object):
 
         misc.reset(1, 'Sourcemeter1')
         misc.reset(2, 'Sourcemeter1')
-        misc.reset(1, 'Sourcemeter2')
+        #misc.reset(1, 'Sourcemeter2')
         misc.reset(2, 'Sourcemeter2')
         return iin
 
@@ -194,11 +193,11 @@ class IV(object):
         dut['Sourcemeter2'].on(channel=2)
 
         fncounter = 1
-        
+
         if OVP_on:
             filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
         else:
-            filename = file_name + "OVP_int_" + str(run_number) + ".csv"
+            filename = file_name + "OVP_ref_" + str(run_number) + ".csv"
 
         while os.path.isfile(file_name):
             filename = filename.split('.')[0]
@@ -363,34 +362,34 @@ class IV(object):
     def shutdown_tti(self):
         dut['VDD1'].set_enable(on=False)
         time.sleep(0.5)
-        dut['VDD2'].set_enable(on=False)
+        #dut['VDD2'].set_enable(on=False)
         
     def working_point(self):
         misc.reset(1, 'Sourcemeter1')
         misc.reset(2, 'Sourcemeter1')
-        misc.reset(1, 'Sourcemeter2')
+        #misc.reset(1, 'Sourcemeter2')
         misc.reset(2, 'Sourcemeter2')
         misc.set_source_mode('CURR', 1, 'Sourcemeter1')
         misc.set_source_mode('CURR', 2, 'Sourcemeter1')
-        misc.set_source_mode('CURR', 1, 'Sourcemeter2')
+        #misc.set_source_mode('CURR', 1, 'Sourcemeter2')
         misc.set_source_mode('CURR', 2, 'Sourcemeter2')
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 1)
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
-        dut['Sourcemeter2'].set_voltage_limit(2, channel = 1)
+        #dut['Sourcemeter2'].set_voltage_limit(2, channel = 1)
         dut['Sourcemeter2'].set_voltage_limit(2, channel = 2)
         dut['Sourcemeter1'].set_current(0, channel=1)
         dut['Sourcemeter1'].set_current(0, channel=2)
-        dut['Sourcemeter2'].set_current(0, channel=1)
+        #dut['Sourcemeter2'].set_current(0, channel=1)
         dut['Sourcemeter2'].set_current(0, channel=2)
         dut['Sourcemeter1'].on(channel=1)
         dut['Sourcemeter1'].on(channel=2)
         dut['Sourcemeter2'].on(channel=1)
         dut['Sourcemeter2'].on(channel=2)
-        dut['VDD2'].set_current_limit(0.6)
+        #dut['VDD2'].set_current_limit(0.6)
         time.sleep(1)
         dut['VDD1'].set_current_limit(0.6)
         inputCurr = 0.001
-        dut['VDD2'].set_voltage(0.55)
+        #dut['VDD2'].set_voltage(0.55)
         time.sleep(0.5)
         dut['VDD1'].set_voltage(2)
 

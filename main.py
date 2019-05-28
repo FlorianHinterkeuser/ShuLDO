@@ -18,10 +18,11 @@ import SLDO as SLDO
 from scan_misc import Misc
 from basil.dut import Dut
 start = time.clock()
-chip_id='RD53B_SLDO_BN016'
-flavor='IV2' #switch Vin!!
+chip_id='RD53B_SLDO_BN004'
+flavor='IV_NTC1' #switch Vin!!
+flavor2 = 'IV_NTC1'
 filepath = "/output/" + chip_id + "/" + flavor
-fileName = flavor + "_" + chip_id + "_"
+fileName = flavor2 + "_" + chip_id + "_"
 if not os.path.exists(os.path.normpath(os.getcwd() + filepath)):
     os.makedirs(os.path.normpath(os.getcwd() + filepath))
 os.chdir(os.path.normpath(os.getcwd() + filepath))
@@ -29,13 +30,14 @@ iv = SLDO.IV()
 iv.shutdown_tti()
 n_runs = 1
 for i in range(0,n_runs):
-    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.45)
-    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.475)
-    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.5)
-    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.525)
-    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.55)
-    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.575)
-    iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.6)
+    iv.scan_IV(fileName, 2, 1, 200, 0.005, run_number=i, remote_sense=False, OVP_on=False)
+    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.45)
+    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.475)
+    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.5)
+    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.525)
+    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.55)
+    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.575)
+    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.6)
 iv.working_point()
 iv.shutdown_tti()
 stop = time.clock()

@@ -73,7 +73,7 @@ class Misc(object):
         '''
         
         self.get_device_type(*device)
-        number = 20
+        number = 10
         current = [0.0, 0.0]
         measurement = np.empty(number)
         for i in range(0, len(device)):
@@ -98,7 +98,7 @@ class Misc(object):
         See get_current_reading().
         '''
         self.get_device_type(*device)
-        number = 20
+        number = 10
         voltage = [0.0, 0.0]
         measurement = np.empty(number)
         i = 0
@@ -138,6 +138,23 @@ class Misc(object):
         voltage[0] = np.mean(measurement)
         voltage[1] = np.std(measurement)
         return voltage
+
+    def measure_resistance(self, channel, device):
+        '''
+        See get_current_reading().
+        '''
+        self.get_device_type(device)
+        number = 10
+        measurement = np.empty(number)
+        i = 0
+
+        if self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+            for j in range(0, number):
+                measurement[j] = float(self.dut[device].get_resistance(channel=channel))
+        else:
+            raise ValueError
+        resistance = [np.mean(measurement), np.std(measurement)]
+        return resistance
         
     
     def set_source_mode(self, mode, channel, *device):
@@ -226,7 +243,9 @@ if __name__ == '__main__':
 #    misc.reset(2, 'Sourcemeter1')
 #    misc.reset(1, 'Sourcemeter2')
 
-#    dut['Sourcemeter1'].get_voltage(channel = 2)
+    print(dut['Sourcemeter1'].get_name())
+    print(dut["Sourcemeter2"].get_resistance(channel = 1))
+    print(misc.measure_resistance(1, "Sourcemeter2"))
 
 #    misc.reset(1, 'Sourcemeter1')                       #misc.reset(channel, device*)
 #    misc.reset(2, 'Sourcemeter1')
