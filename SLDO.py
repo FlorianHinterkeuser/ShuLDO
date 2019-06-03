@@ -57,10 +57,11 @@ class IV(object):
         IV-scan in current supply mode.
         '''
         logging.info("Starting ...")
-        set_scan(device = 'Sourcemeter1', channel = 1, mode = 'CURR', vlim = 2, ilim = 0)
-        set_scan(device = 'Sourcemeter1', channel = 2, mode = 'CURR', vlim = 2, ilim = 0)
-        set_scan(device = 'Sourcemeter2', channel = 1, mode = 'VOLT', vlim = 1, ilim = 1)
-        set_scan(device = 'Sourcemeter2', channel = 2, mode = 'CURR', vlim = 2, ilim = 0)
+
+        set_scan('Sourcemeter1', channel=1, mode='CURR', vlim=2, ilim=0)
+        set_scan('Sourcemeter1', channel=2, mode='CURR', vlim=2, ilim=0)
+        set_scan('Sourcemeter2', channel=1, mode='VOLT', vlim=1, ilim=1)
+        set_scan('Sourcemeter2', channel=2, mode='CURR', vlim=2, ilim=0)
         '''
         misc.reset(1, 'Sourcemeter1')   #Vout
         misc.reset(2, 'Sourcemeter1')   #vref
@@ -398,7 +399,7 @@ class IV(object):
         dut['VDD1'].set_voltage(2)
 
 
-def set_scan(self, device = 'Sourcemeter1', channel = 1, mode = 'CURR', vlim = 2, ilim = 0, autorange = False):
+def set_scan(device = 'Sourcemeter1', channel = 1, mode = 'CURR', vlim = 2, ilim = 0, autorange = False):
     misc.reset(channel, device)  # Vout
     misc.set_source_mode(mode, channel, device)
 
