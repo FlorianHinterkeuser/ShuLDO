@@ -57,7 +57,11 @@ class IV(object):
         IV-scan in current supply mode.
         '''
         logging.info("Starting ...")
-
+        set_scan(device = 'Sourcemeter1', channel = 1, mode = 'CURR', vlim = 2, ilim = 0)
+        set_scan(device = 'Sourcemeter1', channel = 2, mode = 'CURR', vlim = 2, ilim = 0)
+        set_scan(device = 'Sourcemeter2', channel = 1, mode = 'VOLT', vlim = 1, ilim = 1)
+        set_scan(device = 'Sourcemeter2', channel = 2, mode = 'CURR', vlim = 2, ilim = 0)
+        '''
         misc.reset(1, 'Sourcemeter1')   #Vout
         misc.reset(2, 'Sourcemeter1')   #vref
         misc.reset(1, 'Sourcemeter2')   #Voff
@@ -88,7 +92,7 @@ class IV(object):
         dut['Sourcemeter1'].on(channel=2)
         dut['Sourcemeter2'].on(channel=1)
         dut['Sourcemeter2'].on(channel=2)
-
+        '''
         fncounter=1
         if OVP_on:
             filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
@@ -392,6 +396,30 @@ class IV(object):
         #dut['VDD2'].set_voltage(0.55)
         time.sleep(0.5)
         dut['VDD1'].set_voltage(2)
+
+
+def set_scan(self, device = 'Sourcemeter1', channel = 1, mode = 'CURR', vlim = 2, ilim = 0, autorange = False):
+    misc.reset(channel, device)  # Vout
+    misc.set_source_mode(mode, channel, device)
+
+    if mode == 'CURR':
+        dut[device].set_voltage_limit(vlim, channel=channel)
+
+        if autorange:
+            dut[device].set_autorange(channel = channel)
+
+        dut[device].set_current(ilim, channel=channel)
+        dut[device].on(channel=channel)
+
+    elif mode == 'VOLT':
+        dut[device].set_current_limit(ilim, channel=channel)
+
+        if autorange:
+            dut[device].set_autorange(channel=channel)
+
+        dut[device].set_voltage(vlim, channel=channel)
+        dut[device].on(channel=channel)
+
 
 
 
