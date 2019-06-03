@@ -311,9 +311,9 @@ class Chip_overview(object):
             elif 'NTC3' in key:
                 ntc3_exists = True
                 ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='yellow',
-                         label='Prereg Reference Voltage')
-                ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
                          label='Prereg Output Voltage')
+                ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
+                         label='Prereg Reference Voltage')
 
             #            ax1.plot(iin, u_in, linestyle='--', linewidth= 0.05, markersize = '.4', color='orange', label = 'Reff from input Voltage fit = %.2f Ohm, offset = %.2f V' % (x[0], x[1]))
             #            ax1.plot(iin, offs, linestyle='--', linewidth= 0.05, markersize = '.4', color='cyan', label = 'Offset from measurement = %.2f V, Slope = %.2f V/A' % (offset_mean,y[0]))
@@ -324,19 +324,22 @@ class Chip_overview(object):
         ax2.set_ylabel("NTC Temperature")
         if ntc1_exists and ntc2_exists and ntc3_exists:
             legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'R_ext Voltage': 'green', 'Bandgap': 'orange',
-                    'Prereg Reference Voltage': 'yellow', 'Prereg Output Voltage': 'brown'}
+                    'Prereg Reference Voltage': 'brown', 'Prereg Output Voltage': 'yellow'}
         elif ntc1_exists and ntc2_exists:
             legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'R_ext Voltage': 'green', 'Bandgap': 'orange'}
         elif ntc1_exists and ntc3_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'Prereg Reference Voltage': 'yellow', 'Prereg Output Voltage': 'brown'}
+            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'Prereg Reference Voltage': 'brown', 'Prereg Output Voltage': 'yellow'}
         elif ntc2_exists and ntc3_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'R_ext Voltage': 'green', 'Bandgap': 'orange', 'Prereg Reference Voltage': 'yellow', 'Prereg Output Voltage': 'brown'}
+            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'R_ext Voltage': 'green', 'Bandgap': 'orange', 'Prereg Reference Voltage': 'brown', 'Prereg Output Voltage': 'yellow'}
         elif ntc1_exists:
             legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive'}
         elif ntc2_exists:
             legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'R_ext Voltage': 'green', 'Bandgap': 'orange'}
         elif ntc3_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Prereg Reference Voltage': 'yellow', 'Prereg Output Voltage': 'brown'}
+            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Prereg Reference Voltage': 'brown', 'Prereg Output Voltage': 'yellow'}
+        else:
+            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue',
+                           'Reference Voltage': 'olive'}
 
         colors = legend_dict.values()
         labels = legend_dict.keys()
