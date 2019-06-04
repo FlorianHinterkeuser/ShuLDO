@@ -258,24 +258,28 @@ class Chip_overview(object):
         for key in data.keys():
             print key
             datas = data[key]['data']
-            iin, vin, vext, vout, vref, voffs = [], [], [], [], [], []
-            diin, dvin, dvext, dvout, dvref, dvoffs = [], [], [], [], [], []
+            iin, vin, vext, vout, vref, voffs, iref, voutpre = [], [], [], [], [], [], [], []
+            diin, dvin, dvext, dvout, dvref, dvoffs, diref, dvoutpre = [], [], [], [], [], [], [], []
             diinl, dvinl, dvextl, dvoutl, dvrefl, dvoffsl = [], [], [], [], [], []
             diinh, dvinh, dvexth, dvouth, dvrefh, dvoffsh = [], [], [], [], [], []
 
             for row in datas:
                 iin.append((row[0]))
-                diin.append((row[6]))
+                diin.append((row[8]))
                 vin.append(row[1])
-                dvin.append((row[7]))
+                dvin.append((row[9]))
                 vout.append(row[2])
-                dvout.append(row[8])
+                dvout.append(row[10])
                 vref.append(row[3])
-                dvref.append(row[9])
+                dvref.append(row[11])
                 voffs.append(row[4])
-                dvoffs.append(row[10])
+                dvoffs.append(row[12])
+                iref.append(row[5])
+                diref.append(row[13])
+                voutpre.append(row[6])
+                dvoutpre.append(row[14])
 #                vext.append(1.0/row[5])
-                vext.append(1/(1./298.15 + 1./3435. * math.log(row[5]/10000.))-273.15)
+                vext.append(1/(1./298.15 + 1./3435. * math.log(row[7]/10000.))-273.15)
             #for i in range(len(dvin)):
             #    dvinl.append(vin[i] - dvin[i])
             #    dvinh.append(vin[i] + dvin[i])
@@ -296,24 +300,24 @@ class Chip_overview(object):
                      label='Output Voltage')
             ax2.plot(iin, vext, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='black',
                      label='NTC')
-            if 'NTC1' in key:
-                ntc1_exists = True
-                ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='blue',
-                     label='Offset Voltage')
-                ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='olive',
-                     label='Reference Voltage')
-            elif 'NTC2' in key:
-                ntc2_exists = True
-                ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='green',
-                         label='R_ext Voltage')
-                ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='orange',
-                         label='Bandgap Voltage')
-            elif 'NTC3' in key:
-                ntc3_exists = True
-                ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='yellow',
-                         label='Prereg Output Voltage')
-                ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
-                         label='Prereg Reference Voltage')
+            #if 'NTC1' in key:
+            ntc1_exists = True
+            ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='blue',
+                 label='Offset Voltage')
+            ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='olive',
+                 label='Reference Voltage')
+            #elif 'NTC2' in key:
+            #    ntc2_exists = True
+            #    ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='green',
+            #             label='R_ext Voltage')
+            #    ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='orange',
+            #             label='Bandgap Voltage')
+            #elif 'NTC3' in key:
+            ntc3_exists = True
+            ax1.plot(iin, voutpre, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='yellow',
+                     label='Prereg Output Voltage')
+            ax1.plot(iin, iref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
+                     label='Reference Current')
 
             #            ax1.plot(iin, u_in, linestyle='--', linewidth= 0.05, markersize = '.4', color='orange', label = 'Reff from input Voltage fit = %.2f Ohm, offset = %.2f V' % (x[0], x[1]))
             #            ax1.plot(iin, offs, linestyle='--', linewidth= 0.05, markersize = '.4', color='cyan', label = 'Offset from measurement = %.2f V, Slope = %.2f V/A' % (offset_mean,y[0]))
@@ -328,7 +332,7 @@ class Chip_overview(object):
         elif ntc1_exists and ntc2_exists:
             legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'R_ext Voltage': 'green', 'Bandgap': 'orange'}
         elif ntc1_exists and ntc3_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'Prereg Reference Voltage': 'brown', 'Prereg Output Voltage': 'yellow'}
+            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'Reference Current': 'brown', 'Prereg Output Voltage': 'yellow'}
         elif ntc2_exists and ntc3_exists:
             legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'R_ext Voltage': 'green', 'Bandgap': 'orange', 'Prereg Reference Voltage': 'brown', 'Prereg Output Voltage': 'yellow'}
         elif ntc1_exists:
@@ -439,12 +443,12 @@ class Chip_overview(object):
         if flavor == 'IV':
             #self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
             #self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
-            self.plot_iv3(data = collected_data, chip=chip_id, specifics = specifics)
+            self.plot_iv(data = collected_data, chip=chip_id, specifics = specifics)
             #self.plot_iv_spread(chip = chip_id, specifics = specifics)
         elif flavor == 'IV2':
             self.plot_iv2(data=collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
 
-        elif flavor == 'IV_NTC1':
+        elif flavor == 'IV_NTC1' or flavor == 'Temperatur':
             # self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
             # self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics)
@@ -462,8 +466,8 @@ class Chip_overview(object):
 if __name__ == "__main__":
     root_path = os.getcwd()
     chips = Chip_overview()
-    chip_id = 'RD53B_SLDO_BN016'
-    flavor = 'IV_NTC1'
-    specifics = '_NTC1'
+    chip_id = 'RD53B_SLDO_BN007'
+    flavor = 'Temperatur'
+    specifics = ''
     chips.create_iv_overview(chip_id, flavor, specifics)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
