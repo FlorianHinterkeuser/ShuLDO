@@ -193,6 +193,9 @@ class Misc(object):
         if self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
             for j in range(0, number):
                 measurement[j] = float(self.dut[device].get_resistance(channel=channel))
+        elif self.typ[i] == 'keithley_2000':
+            for j in range(0, number):
+                measurement[j] = float(self.dut[device].get_resistance())
         else:
             raise ValueError
         resistance = [np.mean(measurement), np.std(measurement)]
