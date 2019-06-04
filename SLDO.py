@@ -7,6 +7,9 @@ import logging
 import csv
 import os.path
 import time
+import numpy as np
+import math
+
 
 from scan_misc import Misc
 from basil.dut import Dut
@@ -421,6 +424,19 @@ def set_scan(device = 'Sourcemeter1', channel = 1, mode = 'CURR', vlim = 2, ilim
         dut[device].set_voltage(vlim, channel=channel)
         dut[device].on(channel=channel)
 
+def temp_check():
+    ntc = np.empty(10)
+    for i in range(10):
+        print i
+        ntc[i] = misc.measure_resistance(0, 'Multimeter2')[0]
+        ntc[i] = 1/(1./298.15 + 1./3435. * math.log(ntc[i]/10000.))-273.15
+        time.sleep(0.5)
+    ntc_mean = np.mean(ntc)
+    ntc_std = np.std(ntc)
+    print(ntc[0])
+    print(ntc[-1])
+    print(ntc_mean)
+    print(ntc_std)
 
 
 
