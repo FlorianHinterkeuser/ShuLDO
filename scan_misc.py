@@ -64,6 +64,48 @@ class Misc(object):
             self.typ [i] = vendor[i] + '_' + model[i]
             
         return self.typ
+
+    def set_scan(self, device='Sourcemeter1', channel=0, mode='CURR', vlim=2, ilim=0, autorange=False):
+        self.reset(channel, device)  # Vout
+        self.set_source_mode(mode, channel, device)
+
+        if channel != 0:#If device has more than one channel
+            if mode == 'CURR':
+                self.dut[device].set_voltage_limit(vlim, channel=channel)
+
+                if autorange:
+                    self.dut[device].set_autorange(channel=channel)
+
+                self.dut[device].set_current(ilim, channel=channel)
+                self.dut[device].on(channel=channel)
+
+            elif mode == 'VOLT':
+                self.dut[device].set_current_limit(ilim, channel=channel)
+
+                if autorange:
+                    self.dut[device].set_autorange(channel=channel)
+
+                self.dut[device].set_voltage(vlim, channel=channel)
+                self.dut[device].on(channel=channel)
+
+        else: #for devices with one channel set channel = 0
+            if mode == 'CURR':
+                self.dut[device].set_voltage_limit(vlim)
+
+                if autorange:
+                    self.dut[device].set_autorange()
+
+                self.dut[device].set_current(ilim)
+                self.dut[device].on()
+
+            elif mode == 'VOLT':
+                self.dut[device].set_current_limit(ilim)
+
+                if autorange:
+                    self.dut[device].set_autorange()
+
+                self.dut[device].set_voltage(vlim)
+                self.dut[device].on()
           
     def measure_current(self, channel, *device):
         '''

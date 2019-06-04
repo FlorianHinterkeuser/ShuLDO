@@ -61,42 +61,12 @@ class IV(object):
         '''
         logging.info("Starting ...")
 
-        set_scan('Sourcemeter1', channel=1, mode='CURR', vlim=2, ilim=0)
-        set_scan('Sourcemeter1', channel=2, mode='CURR', vlim=2, ilim=0)
-        set_scan('Sourcemeter2', channel=1, mode='VOLT', vlim=1, ilim=1)
-        set_scan('Sourcemeter2', channel=2, mode='CURR', vlim=2, ilim=0)
-        '''
-        misc.reset(1, 'Sourcemeter1')   #Vout
-        misc.reset(2, 'Sourcemeter1')   #vref
-        misc.reset(1, 'Sourcemeter2')   #Voff
-        misc.reset(2, 'Sourcemeter2')   #Vrext
- 
-        misc.set_source_mode('CURR', 1, 'Sourcemeter1')
-        misc.set_source_mode('CURR', 2, 'Sourcemeter1')
-        misc.set_source_mode('VOLT', 1, 'Sourcemeter2')
-        misc.set_source_mode('CURR', 2, 'Sourcemeter2')     
- 
-        dut['Sourcemeter1'].set_voltage_limit(2, channel = 1)
-        dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
-        dut['Sourcemeter2'].set_current_limit(1, channel = 1)
-        dut['Sourcemeter2'].set_voltage_limit(2, channel = 2)
- 
-#        dut['Sourcemeter1'].set_autorange(channel = 1)
-#        dut['Sourcemeter1'].set_autorange(channel = 2)
-#        dut['Sourcemeter2'].set_autorange(channel = 1)
-#        dut['Sourcemeter2'].set_autorange(channel = 2)
-#        dut['Sourcemeter3'].set_autorange()
- 
-        dut['Sourcemeter1'].set_current(0, channel=1)
-        dut['Sourcemeter1'].set_current(0, channel=2)
-        dut['Sourcemeter2'].set_voltage(1, channel=1)
-        dut['Sourcemeter2'].set_current(0, channel=2)
- 
-        dut['Sourcemeter1'].on(channel=1)
-        dut['Sourcemeter1'].on(channel=2)
-        dut['Sourcemeter2'].on(channel=1)
-        dut['Sourcemeter2'].on(channel=2)
-        '''
+        misc.set_scan('Sourcemeter1', channel=1, mode='CURR', vlim=2, ilim=0)
+        misc.set_scan('Sourcemeter1', channel=2, mode='CURR', vlim=2, ilim=0)
+        misc.set_scan('Sourcemeter2', channel=1, mode='CURR', vlim=2, ilim=0)
+        misc.set_scan('Sourcemeter2', channel=2, mode='CURR', vlim=2, ilim=0)
+        misc.set_scan('Sourcemeter3', channel=0, mode='CURR', vlim=2, ilim=0)
+
         fncounter=1
         if OVP_on:
             filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
@@ -395,34 +365,16 @@ class IV(object):
         dut['Sourcemeter2'].on(channel=2)
         #dut['VDD2'].set_current_limit(0.6)
         time.sleep(1)
-        dut['VDD1'].set_current_limit(0.6)
+        dut['VDD1'].set_current_limit(0.1)
         inputCurr = 0.001
         #dut['VDD2'].set_voltage(0.55)
         time.sleep(0.5)
         dut['VDD1'].set_voltage(2)
+        time.sleep(0.5)
+        dut['VDD1'].reset_trip()
+        dut['VDD1'].set_enable(on=True)
 
 
-def set_scan(device = 'Sourcemeter1', channel = 1, mode = 'CURR', vlim = 2, ilim = 0, autorange = False):
-    misc.reset(channel, device)  # Vout
-    misc.set_source_mode(mode, channel, device)
-
-    if mode == 'CURR':
-        dut[device].set_voltage_limit(vlim, channel=channel)
-
-        if autorange:
-            dut[device].set_autorange(channel = channel)
-
-        dut[device].set_current(ilim, channel=channel)
-        dut[device].on(channel=channel)
-
-    elif mode == 'VOLT':
-        dut[device].set_current_limit(ilim, channel=channel)
-
-        if autorange:
-            dut[device].set_autorange(channel=channel)
-
-        dut[device].set_voltage(vlim, channel=channel)
-        dut[device].on(channel=channel)
 
 def temp_check():
     ntc = np.empty(10)
