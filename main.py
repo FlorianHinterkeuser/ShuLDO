@@ -40,7 +40,7 @@ for i in range(0,n_runs):
     #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.575)
     #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.6)
 iv.working_point()
-iv.shutdown_tti()
+#iv.shutdown_tti()
 stop = time.clock()
 runtime = stop-start
 Plot = plot.Chip_overview()

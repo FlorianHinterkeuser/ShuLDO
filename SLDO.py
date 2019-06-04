@@ -79,7 +79,7 @@ class IV(object):
 
         with open(filename, 'wb') as outfile:
             f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
-            f.writerow(['Input current [A]', 'Input voltage [V]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'NTC [Ohm]', 'dIin [A]', 'dVin [V]', 'dVDD [V]', 'dVref [V]', 'dVoffs [V]', 'dNTC [Ohm]'])
+            f.writerow(['Input current [A]', 'Input voltage [V]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Iref [V]', 'Vbg [V]', 'NTC [Ohm]', 'dIin [A]', 'dVin [V]', 'dVDD [V]', 'dVref [V]', 'dVoffs [V]', 'dIref [V]', 'dVbg [V]', 'dNTC [Ohm]'])
 
             dut['VDD1'].set_current_limit(0)
             time.sleep(1)
@@ -106,7 +106,10 @@ class IV(object):
                 vdd = misc.measure_voltage(1, 'Sourcemeter1')
                 vref = misc.measure_voltage(2, 'Sourcemeter1')
                 voff = misc.measure_voltage(2, 'Sourcemeter2')
-                vrext = misc.measure_resistance(1, 'Sourcemeter2')
+                iref = misc.measure_voltage(1, 'Sourcemeter2')
+                vbg = misc.measure_voltage(0, 'Sourcemeter3')
+                #vext = misc.measure_voltage(0, 'Multimeter1')
+                ntc = misc.measure_resistance(0, 'Multimeter2')
 #                preliminiary_mirrored_current = vrext[0] / 800
 #                logging.info("Mirrored current is %f Ohm" % ntc)
 #                logging.info("Digital input voltage is %r V" % input_voltage)
@@ -116,7 +119,7 @@ class IV(object):
 
 
 
-                misc.data.append([iin, input_voltage, vdd[0], vref[0], voff[0], vrext[0], iin*0.001 , input_voltage*0.001,vdd[1], vref[1], voff[1], vrext[1]])
+                misc.data.append([iin, input_voltage, vdd[0], vref[0], voff[0], iref[0], vbg[0], ntc[0], iin*0.001 , input_voltage*0.001,vdd[1], vref[1], voff[1], iref[1], vbg[1], ntc[1]])
                 f.writerow(misc.data[-1])
                 
                 iin += stepSize
@@ -128,7 +131,8 @@ class IV(object):
 
         misc.reset(1, 'Sourcemeter1')
         misc.reset(2, 'Sourcemeter1')
-        #misc.reset(1, 'Sourcemeter2')
+        misc.reset(1, 'Sourcemeter2')
+        misc.reset(1, 'Sourcemeter3')
         misc.reset(2, 'Sourcemeter2')
         return iin
 
@@ -247,7 +251,6 @@ class IV(object):
         misc.reset(2, 'Sourcemeter1')   #Imirror
         misc.reset(1, 'Sourcemeter2')   #Vref
         misc.reset(2, 'Sourcemeter2')   #Voffs
-        misc.reset(1, 'Multimeter1')
  
         misc.set_source_mode('CURR', 1, 'Sourcemeter1')
         misc.set_source_mode('CURR', 2, 'Sourcemeter1')
@@ -259,20 +262,16 @@ class IV(object):
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
         dut['Sourcemeter2'].set_voltage_limit(2, channel = 1)
         dut['Sourcemeter2'].set_voltage_limit(2, channel = 2)
-        dut['Multimeter1'].set_voltage_limit(2)
  
         dut['Sourcemeter1'].set_current(0, channel=1)
         dut['Sourcemeter1'].set_current(0, channel=2)
         dut['Sourcemeter2'].set_current(0, channel=1)
         dut['Sourcemeter2'].set_current(0, channel=2)
-        dut['Multimeter1'].set_current(0)
  
         dut['Sourcemeter1'].on(channel=1)
         dut['Sourcemeter1'].on(channel=2)
         dut['Sourcemeter2'].on(channel=1)
         dut['Sourcemeter2'].on(channel=2)
-        dut['Multimeter1'].four_wire_on()
-        dut['Multimeter1'].on()
 
         fncounter=1
         filename = file_name + str(run_number) + ".csv"
@@ -349,15 +348,15 @@ class IV(object):
         misc.reset(2, 'Sourcemeter2')
         misc.set_source_mode('CURR', 1, 'Sourcemeter1')
         misc.set_source_mode('CURR', 2, 'Sourcemeter1')
-        #misc.set_source_mode('CURR', 1, 'Sourcemeter2')
+        misc.set_source_mode('CURR', 1, 'Sourcemeter2')
         misc.set_source_mode('CURR', 2, 'Sourcemeter2')
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 1)
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
-        #dut['Sourcemeter2'].set_voltage_limit(2, channel = 1)
+        dut['Sourcemeter2'].set_voltage_limit(2, channel = 1)
         dut['Sourcemeter2'].set_voltage_limit(2, channel = 2)
         dut['Sourcemeter1'].set_current(0, channel=1)
         dut['Sourcemeter1'].set_current(0, channel=2)
-        #dut['Sourcemeter2'].set_current(0, channel=1)
+        dut['Sourcemeter2'].set_current(0, channel=1)
         dut['Sourcemeter2'].set_current(0, channel=2)
         dut['Sourcemeter1'].on(channel=1)
         dut['Sourcemeter1'].on(channel=2)
