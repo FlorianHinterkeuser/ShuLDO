@@ -247,31 +247,13 @@ class IV(object):
         '''
         logging.info("Starting ...")
 
-        misc.reset(1, 'Sourcemeter1')   #Iin
-        misc.reset(2, 'Sourcemeter1')   #Imirror
-        misc.reset(1, 'Sourcemeter2')   #Vref
-        misc.reset(2, 'Sourcemeter2')   #Voffs
- 
-        misc.set_source_mode('CURR', 1, 'Sourcemeter1')
-        misc.set_source_mode('CURR', 2, 'Sourcemeter1')
-        misc.set_source_mode('CURR', 1, 'Sourcemeter2')
-        misc.set_source_mode('CURR', 2, 'Sourcemeter2')
+        misc.set_scan(device='Sourcemeter1', channel=1, mode='CURR', vlim=2, ilim=0)
+        misc.set_scan(device='Sourcemeter1', channel=2, mode='CURR', vlim=2, ilim=0)
+        misc.set_scan(device='Sourcemeter2', channel=1, mode='CURR', vlim=2, ilim=0)
+        misc.set_scan(device='Sourcemeter2', channel=2, mode='CURR', vlim=2, ilim=0)
+
         misc.set_source_mode('CURR', 1, 'Multimeter1') 
- 
-        dut['Sourcemeter1'].set_voltage_limit(2, channel = 1)
-        dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
-        dut['Sourcemeter2'].set_voltage_limit(2, channel = 1)
-        dut['Sourcemeter2'].set_voltage_limit(2, channel = 2)
- 
-        dut['Sourcemeter1'].set_current(0, channel=1)
-        dut['Sourcemeter1'].set_current(0, channel=2)
-        dut['Sourcemeter2'].set_current(0, channel=1)
-        dut['Sourcemeter2'].set_current(0, channel=2)
- 
-        dut['Sourcemeter1'].on(channel=1)
-        dut['Sourcemeter1'].on(channel=2)
-        dut['Sourcemeter2'].on(channel=1)
-        dut['Sourcemeter2'].on(channel=2)
+
 
         fncounter=1
         filename = file_name + str(run_number) + ".csv"
