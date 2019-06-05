@@ -265,7 +265,7 @@ class IV(object):
 
         with open(filename, 'wb') as outfile:
             f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
-            f.writerow(['Input voltage [V]', 'Load current [A]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Vpre [V]', 'Vbg [V]'])
+            f.writerow(['Input voltage [V]', 'Load current [A]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Vpre [V]', 'Vbg [V]', 'dVin [V]', 'dIload [A]', 'dVDD [V]', 'dVref [V]', 'dVoffs [V]', 'dVpre [V]', 'dVbg [V]'])
 
             dut['VDD1'].set_current_limit(iin)
             time.sleep(1)
@@ -285,11 +285,11 @@ class IV(object):
                 logging.info("measuring ...")
                 input_voltage = dut['VDD1'].get_voltage()
                 time.sleep(0.5)
-                vdd = misc.measure_voltage(1, 'Multimeter1')[0]
-                voffs = misc.measure_voltage(2, 'Sourcemeter1')[0]
-                vref = misc.measure_voltage(1, 'Sourcemeter1')[0]
-                vpre = misc.measure_voltage(1, 'Sourcemeter2')[0]
-                vbg = misc.measure_voltage(2, 'Sourcemeter2')[0]
+                vdd = misc.measure_voltage(1, 'Multimeter1')
+                voffs = misc.measure_voltage(2, 'Sourcemeter1')
+                vref = misc.measure_voltage(1, 'Sourcemeter1')
+                vpre = misc.measure_voltage(1, 'Sourcemeter2')
+                vbg = misc.measure_voltage(2, 'Sourcemeter2')
                 
                 logging.info("Digital input voltage is %r V" % input_voltage)
                 logging.info("Load current is %r A" % iload)
@@ -301,7 +301,7 @@ class IV(object):
 
 
 
-                misc.data.append([input_voltage, iload, vdd, vref, voffs, vpre, vbg])
+                misc.data.append([input_voltage, iload, vdd[0], vref[0], voffs[0], vpre[0], vbg[0], input_voltage*0.005, iload*0.001, vdd[1], vref[1], voffs[1], vpre[1], vbg[1]])
                 f.writerow(misc.data[-1])
                 if iin - iload < 2*stepSize:
                     stepSize = 0.001
