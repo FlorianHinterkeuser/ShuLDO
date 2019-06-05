@@ -256,7 +256,7 @@ class Chip_overview(object):
         ntc3_exists = False
 
         for key in data.keys():
-            print key
+            print(key)
             datas = data[key]['data']
             iin, vin, vext, vout, vref, voffs, iref, voutpre = [], [], [], [], [], [], [], []
             diin, dvin, dvext, dvout, dvref, dvoffs, diref, dvoutpre = [], [], [], [], [], [], [], []
@@ -319,8 +319,25 @@ class Chip_overview(object):
             ax1.plot(iin, iref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
                      label='Reference Current')
 
-            #            ax1.plot(iin, u_in, linestyle='--', linewidth= 0.05, markersize = '.4', color='orange', label = 'Reff from input Voltage fit = %.2f Ohm, offset = %.2f V' % (x[0], x[1]))
-            #            ax1.plot(iin, offs, linestyle='--', linewidth= 0.05, markersize = '.4', color='cyan', label = 'Offset from measurement = %.2f V, Slope = %.2f V/A' % (offset_mean,y[0]))
+            #Fits to determine R_eff and Offs
+            x = np.polyfit(iin[-fit_length:], vin[-fit_length:], 1)
+            y = np.polyfit(iin[-fit_length:], voffs[-fit_length:], 1)
+
+            print(x)
+            print(y)
+            #u_in = []
+            #offs = []
+
+            offset_mean = np.mean(voffs[-fit_length:]) * 2
+
+            print(offset_mean)
+            #for i in range(len(iin)):
+            #    u_in.append(iin[i] * x[0] + x[1])
+            #    offs.append(iin[i] * y[0] + y[1])
+            self.vin_fits_vdd.append([x[0], x[1]])
+            self.voffs_fits_vdd.append([y[0], y[1], offset_mean])
+
+
 
 
         ax1.set_xlabel("Input Current / A")
@@ -456,7 +473,7 @@ class Chip_overview(object):
             # self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
             # self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics)
-            # self.plot_iv_spread(chip = chip_id, specifics = specifics)
+            self.plot_iv_spread(chip = chip_id, specifics = specifics)
 
 
     def file_to_array(self, file):
@@ -472,6 +489,6 @@ if __name__ == "__main__":
     chips = Chip_overview()
     chip_id = 'RD53B_SLDO_BN007'
     flavor = 'Temperatur'
-    specifics = '_4'
+    specifics = ''
     chips.create_iv_overview(chip_id, flavor, specifics)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
