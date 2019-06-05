@@ -427,7 +427,11 @@ class Chip_overview(object):
 
     def create_iv_overview(self, chip_id, flavor, specifics,  **kwargs):
         self.mirror = []
-        os.chdir(normpath(root_path + "/output/" + chip_id + "/" + flavor))
+        root_path = os.getcwd()
+        if 'Temperatur' in root_path:
+            print('plotting')
+        else:
+            os.chdir(normpath(root_path + "/output/" + chip_id + "/" + flavor))
         filelist, self.vin_fits_vdd, self.voffs_fits_vdd, self.scan_parameter = [],  [],  [],  []
         collected_data = {}
         
@@ -468,6 +472,6 @@ if __name__ == "__main__":
     chips = Chip_overview()
     chip_id = 'RD53B_SLDO_BN007'
     flavor = 'Temperatur'
-    specifics = ''
+    specifics = '_4'
     chips.create_iv_overview(chip_id, flavor, specifics)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)

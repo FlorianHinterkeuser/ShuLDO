@@ -19,7 +19,7 @@ import plot
 from scan_misc import Misc
 from basil.dut import Dut
 start = time.clock()
-chip_id='test'
+chip_id='RD53B_SLDO_BN007'
 flavor='Temperatur' #switch Vin!!
 flavor2 = 'Temp_IV'
 filepath = "/output/" + chip_id + "/" + flavor
@@ -29,9 +29,10 @@ if not os.path.exists(os.path.normpath(os.getcwd() + filepath)):
 os.chdir(os.path.normpath(os.getcwd() + filepath))
 iv = SLDO.IV()
 iv.shutdown_tti()
-n_runs = 1
-for i in range(0,n_runs):
-    iv.scan_IV(fileName, 2, 1, 200, 0.005, run_number=i, remote_sense=False, OVP_on=False)
+n_runs = 2
+runnbr = 5
+for i in range(1,n_runs):
+    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number=runnbr, remote_sense=False, OVP_on=False)
     #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.45)
     #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.475)
     #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.5)
@@ -44,7 +45,7 @@ iv.working_point()
 stop = time.clock()
 runtime = stop-start
 Plot = plot.Chip_overview()
-Plot.create_iv_overview(chip_id, flavor, '')
+Plot.create_iv_overview(chip_id, flavor, '_' + str(runnbr))
 #===============================================================================
 # def FileAuf(filename):
 #     print filename
