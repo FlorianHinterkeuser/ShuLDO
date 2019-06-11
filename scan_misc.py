@@ -247,7 +247,7 @@ class Misc(object):
         set_mode = [None]*len(device)
         for i in range(0, len(device)):
             if self.typ[i] == 'keithley_2410' or self.typ[i] == 'keithley_2400' or self.typ[i] == 'keithley_2410':
-                self.dut[device[i]].four_wire_off()
+#                self.dut[device[i]].four_wire_off()
                 self.dut[device[i]].set_autorange()
                 set_mode[i] = str(self.dut[device[i]].get_source_mode())
                 if 'VOLT' in set_mode[i]:

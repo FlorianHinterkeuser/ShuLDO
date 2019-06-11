@@ -100,6 +100,7 @@ class IV(object):
                 dut['VDD2'].set_enable(on=True)
             dut['VDD1'].set_enable(on=True)
             time.sleep(1)
+            dut["Sourcemeter1"].four_wire_on(channel=1)
             for x in range(0, int(steps)):
                 
                 logging.info("Setting Current to %f" % iin)
@@ -113,9 +114,9 @@ class IV(object):
                 vref = misc.measure_voltage(2, 'Sourcemeter1')
                 voff = misc.measure_voltage(2, 'Sourcemeter2')
                 iref = misc.measure_voltage(1, 'Sourcemeter2')
-                vbg = misc.measure_voltage(0, 'Sourcemeter3')
-                #vext = misc.measure_voltage(0, 'Multimeter1')
-                ntc = misc.measure_resistance(0, 'Multimeter2')
+                voutpre = misc.measure_voltage(0, 'Sourcemeter3')
+                #vext = misc.measure_voltage(0, 'Multimeter2')
+                ntc = misc.measure_resistance(0, 'Multimeter1')
 #                preliminiary_mirrored_current = vrext[0] / 800
 #                logging.info("Mirrored current is %f Ohm" % ntc)
 #                logging.info("Digital input voltage is %r V" % input_voltage)
@@ -125,7 +126,7 @@ class IV(object):
 
 
 
-                misc.data.append([iin, input_voltage, vdd[0], vref[0], voff[0], iref[0], vbg[0], ntc[0], iin*0.001 , input_voltage*0.001,vdd[1], vref[1], voff[1], iref[1], vbg[1], ntc[1]])
+                misc.data.append([iin, input_voltage, vdd[0], vref[0], voff[0], iref[0], voutpre[0], ntc[0], iin*0.001 , input_voltage*0.001,vdd[1], vref[1], voff[1], iref[1], voutpre[1], ntc[1]])
                 f.writerow(misc.data[-1])
                 
                 iin += stepSize
@@ -138,112 +139,7 @@ class IV(object):
         misc.reset(1, 'Sourcemeter1')
         misc.reset(2, 'Sourcemeter1')
         misc.reset(1, 'Sourcemeter2')
-        misc.reset(1, 'Sourcemeter3')
-        misc.reset(2, 'Sourcemeter2')
-        return iin
-
-    def scan_IV2(self, file_name, max_Iin, inputPolarity, steps, stepSize, run_number=0, remote_sense=True,
-                OVP_on=False, OVP_limit=0.5):
-        '''
-        IV-scan in current supply mode.
-        '''
-        logging.info("Starting ...")
-
-        misc.reset(1, 'Sourcemeter1')  # Vout
-        misc.reset(2, 'Sourcemeter1')  # vref
-        misc.reset(1, 'Sourcemeter2')  # Voff
-        misc.reset(2, 'Sourcemeter2')  # Vrext
-
-        misc.set_source_mode('CURR', 1, 'Sourcemeter1')
-        misc.set_source_mode('CURR', 2, 'Sourcemeter1')
-        misc.set_source_mode('CURR', 1, 'Sourcemeter2')
-        misc.set_source_mode('CURR', 2, 'Sourcemeter2')
-
-        dut['Sourcemeter1'].set_voltage_limit(2, channel=1)
-        dut['Sourcemeter1'].set_voltage_limit(2, channel=2)
-        dut['Sourcemeter2'].set_voltage_limit(2, channel=1)
-        dut['Sourcemeter2'].set_voltage_limit(2, channel=2)
-
-        #        dut['Sourcemeter1'].set_autorange(channel = 1)
-        #        dut['Sourcemeter1'].set_autorange(channel = 2)
-        #        dut['Sourcemeter2'].set_autorange(channel = 1)
-        #        dut['Sourcemeter2'].set_autorange(channel = 2)
-        #        dut['Sourcemeter3'].set_autorange()
-
-        dut['Sourcemeter1'].set_current(0, channel=1)
-        dut['Sourcemeter1'].set_current(0, channel=2)
-        dut['Sourcemeter2'].set_current(0, channel=1)
-        dut['Sourcemeter2'].set_current(0, channel=2)
-
-        dut['Sourcemeter1'].on(channel=1)
-        dut['Sourcemeter1'].on(channel=2)
-        dut['Sourcemeter2'].on(channel=1)
-        dut['Sourcemeter2'].on(channel=2)
-
-        fncounter = 1
-
-        if OVP_on:
-            filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
-        else:
-            filename = file_name + "OVP_ref_" + str(run_number) + ".csv"
-
-        while os.path.isfile(file_name):
-            filename = filename.split('.')[0]
-            filename = filename + "_" + str(fncounter) + ".csv"
-            fncounter = fncounter + 1
-
-        with open(filename, 'wb') as outfile:
-            f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
-            f.writerow(['Input current [A]', 'Input voltage [V]', 'VDD [V]', 'Vrefpre [V]', 'Voutpre [V]',
-                            'Vbandgap [V]', 'dIin [A]', 'dVin [V]', 'dVDD [V]', 'dVrefpre [V]', 'dVoutpre [V]',
-                            'dVbandgap [V]'])
-
-            dut['VDD1'].set_current_limit(0)
-            time.sleep(1)
-            iin = 0.001
-            dut['VDD1'].set_voltage(2)
-            time.sleep(0.5)
-            dut['VDD1'].reset_trip()
-            time.sleep(0.5)
-            if OVP_on:
-                dut['VDD2'].set_voltage(OVP_limit)
-                time.sleep(0.5)
-                dut['VDD2'].set_enable(on=True)
-            dut['VDD1'].set_enable(on=True)
-            time.sleep(1)
-            for x in range(0, int(steps)):
-
-                logging.info("Setting Current to %f" % iin)
-                dut['VDD1'].set_current_limit(iin)
-                time.sleep(0.5)
-
-                logging.info("measuring ...")
-                input_voltage = dut['VDD1'].get_voltage()
-                time.sleep(0.5)
-                vdd = misc.measure_voltage(1, 'Sourcemeter1')
-                vrefpre = misc.measure_voltage(2, 'Sourcemeter1')
-                voutpre = misc.measure_voltage(2, 'Sourcemeter2')
-                vbandgap = misc.measure_voltage(1, 'Sourcemeter2')
-
-                logging.info("Vbandgap is %r V" % vbandgap)
-                logging.info("Digital input voltage is %r V" % input_voltage)
-                logging.info("VDD is %r V" % vdd[0])
-                logging.info("Vrefpre is %r V" % vrefpre)
-                logging.info("Voutpre is %r V" % voutpre)
-
-                misc.data.append([iin, input_voltage, vdd[0], vrefpre[0], voutpre[0], vbandgap[0], iin * 0.001, input_voltage * 0.001, vdd[1], vrefpre[1], voutpre[1], vbandgap[1]])
-                f.writerow(misc.data[-1])
-
-                iin += stepSize
-                if float(iin) > float(max_Iin) or float(input_voltage) >= 1.999:
-                    break
-                logging.info("Next step")
-
-        logging.info('Measurement finished.')
-
-        misc.reset(1, 'Sourcemeter1')
-        misc.reset(2, 'Sourcemeter1')
-        misc.reset(1, 'Sourcemeter2')
+#        misc.reset(1, 'Sourcemeter3')
         misc.reset(2, 'Sourcemeter2')
         return iin
 
@@ -257,10 +153,11 @@ class IV(object):
         misc.set_scan(device='Sourcemeter1', channel=2, mode='CURR', vlim=2, ilim=0)
         misc.set_scan(device='Sourcemeter2', channel=1, mode='CURR', vlim=2, ilim=0)
         misc.set_scan(device='Sourcemeter2', channel=2, mode='CURR', vlim=2, ilim=0)
+        misc.set_scan(device='Sourcemeter3', channel=0, mode='CURR', vlim=2, ilim=0)
 
-        misc.set_source_mode('CURR', 1, 'Multimeter1') 
+        misc.set_source_mode('CURR', 1, 'Sourcemeter1') 
 
-
+        dut["Sourcemeter1"].four_wire_on(channel=1)
         fncounter=1
         filename = str(run_number) + "_"+ file_name + "_LoadReg.csv"
 
@@ -275,7 +172,7 @@ class IV(object):
 
         with open(filename, 'wb') as outfile:
             f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
-            f.writerow(['Input voltage [V]', 'Load current [A]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Vpre [V]', 'Vbg [V]', 'dVin [V]', 'dIload [A]', 'dVDD [V]', 'dVref [V]', 'dVoffs [V]', 'dVpre [V]', 'dVbg [V]'])
+            f.writerow(['Load current [A]', 'Input voltage [V]', 'VDD [V]', 'Vref [V]', 'Voffs [V]', 'Vpre [V]', 'Vbg [V]', 'NTC [Ohm]', 'dVin [V]', 'dIload [A]', 'dVDD [V]', 'dVref [V]', 'dVoffs [V]', 'dVpre [V]', 'dVbg [V]', 'dNTC [Ohm]'])
 
             dut['VDD1'].set_current_limit(iin)
             time.sleep(1)
@@ -289,29 +186,21 @@ class IV(object):
             for x in range(0, int(steps)):
                 
                 logging.info("Setting Current")
-                dut['Multimeter1'].set_current(iload)
+                dut['Sourcemeter1'].set_current(iload, channel = 1)
                 time.sleep(1)
 
                 logging.info("measuring ...")
                 input_voltage = dut['VDD1'].get_voltage()
                 time.sleep(0.5)
-                vdd = misc.measure_voltage(1, 'Multimeter1')
-                voffs = misc.measure_voltage(2, 'Sourcemeter1')
-                vref = misc.measure_voltage(1, 'Sourcemeter1')
-                vpre = misc.measure_voltage(1, 'Sourcemeter2')
-                vbg = misc.measure_voltage(2, 'Sourcemeter2')
-                
-                logging.info("Digital input voltage is %r V" % input_voltage)
-                logging.info("Load current is %r A" % iload)
-                logging.info("VDD is %r V" % vdd)
-                logging.info("Vref is %r V" % vref)
-                logging.info("Voffs is %r V" % voffs)
-                logging.info("Vpre is %r V" % vpre)
-                logging.info("Vbg is %r V" % vbg)
+                vdd = misc.measure_voltage(1, 'Sourcemeter1')
+                voffs = misc.measure_voltage(2, 'Sourcemeter2')
+                vref = misc.measure_voltage(2, 'Sourcemeter1')
+                iref = misc.measure_voltage(1, 'Sourcemeter2')
+                voutpre = misc.measure_voltage(0, 'Sourcemeter3')
+                ntc = misc.measure_resistance(0, 'Multimeter1')
 
 
-
-                misc.data.append([input_voltage, iload, vdd[0], vref[0], voffs[0], vpre[0], vbg[0], input_voltage*0.005, iload*0.001, vdd[1], vref[1], voffs[1], vpre[1], vbg[1]])
+                misc.data.append([iload, input_voltage, vdd[0], vref[0], voffs[0], iref[0], voutpre[0], ntc[0], iload*0.001, input_voltage*0.005, vdd[1], vref[1], voffs[1], iref[1], voutpre[1], ntc[1]])
                 f.writerow(misc.data[-1])
                 if iin - iload < 2*stepSize:
                     stepSize = 0.001
@@ -326,38 +215,41 @@ class IV(object):
         misc.reset(2, 'Sourcemeter1')
         misc.reset(1, 'Sourcemeter2')
         misc.reset(2, 'Sourcemeter2')
-        misc.reset(1, 'Multimeter1')
+#        misc.reset(1, 'Sourcemeter3')
     
     def shutdown_tti(self):
         dut['VDD1'].set_enable(on=False)
+
         time.sleep(0.5)
         #dut['VDD2'].set_enable(on=False)
         
     def working_point(self):
         misc.reset(1, 'Sourcemeter1')
         misc.reset(2, 'Sourcemeter1')
-        #misc.reset(1, 'Sourcemeter2')
+        misc.reset(1, 'Sourcemeter2')
         misc.reset(2, 'Sourcemeter2')
+#        misc.reset(1, 'Sourcemeter3')
         misc.set_source_mode('CURR', 1, 'Sourcemeter1')
         misc.set_source_mode('CURR', 2, 'Sourcemeter1')
         misc.set_source_mode('CURR', 1, 'Sourcemeter2')
         misc.set_source_mode('CURR', 2, 'Sourcemeter2')
+        dut["Sourcemeter1"].four_wire_on(channel=1)
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 1)
         dut['Sourcemeter1'].set_voltage_limit(2, channel = 2)
         dut['Sourcemeter2'].set_voltage_limit(2, channel = 1)
         dut['Sourcemeter2'].set_voltage_limit(2, channel = 2)
-        dut['Sourcemeter1'].set_current(0, channel=1)
+        dut['Sourcemeter1'].set_current(0.5, channel=1)
         dut['Sourcemeter1'].set_current(0, channel=2)
         dut['Sourcemeter2'].set_current(0, channel=1)
         dut['Sourcemeter2'].set_current(0, channel=2)
         dut['Sourcemeter1'].on(channel=1)
         dut['Sourcemeter1'].on(channel=2)
         dut['Sourcemeter2'].on(channel=1)
+        dut['Sourcemeter3'].on()
         dut['Sourcemeter2'].on(channel=2)
         #dut['VDD2'].set_current_limit(0.6)
         time.sleep(1)
-        dut['VDD1'].set_current_limit(0.1)
-        inputCurr = 0.001
+        dut['VDD1'].set_current_limit(0.6)
         #dut['VDD2'].set_voltage(0.55)
         time.sleep(0.5)
         dut['VDD1'].set_voltage(2)
@@ -370,7 +262,6 @@ class IV(object):
 def temp_check():
     ntc = np.empty(10)
     for i in range(10):
-        print i
         ntc[i] = misc.measure_resistance(0, 'Multimeter2')[0]
         ntc[i] = 1/(1./298.15 + 1./3435. * math.log(ntc[i]/10000.))-273.15
         time.sleep(0.5)
