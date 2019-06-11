@@ -246,7 +246,7 @@ class Chip_overview(object):
         logging.info("Finished CurrentMirror Plot.")
         plt.close()
 
-    def plot_ntc(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = 50):
+    def plot_ntc(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = 25):
         fig = plt.figure(1)
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
@@ -257,7 +257,8 @@ class Chip_overview(object):
         ntc3_exists = False
 
         for key in data.keys():
-            print(key)
+            save_key = key[-5]
+            self.scan_parameter.append(float(save_key))
             datas = data[key]['data']
             iin, vin, vext, vout, vref, voffs, iref, voutpre = [], [], [], [], [], [], [], []
             diin, dvin, dvext, dvout, dvref, dvoffs, diref, dvoutpre = [], [], [], [], [], [], [], []
@@ -324,14 +325,12 @@ class Chip_overview(object):
             x = np.polyfit(iin[-fit_length:], vin[-fit_length:], 1)
             y = np.polyfit(iin[-fit_length:], voffs[-fit_length:], 1)
 
-            print(x)
-            print(y)
+            self.fit_to_data(iin, voutpre, save_key, 'V_outpre', fit_length)
             #u_in = []
             #offs = []
 
-            offset_mean = np.mean(voffs[-fit_length:]) * 2
+            offset_mean = np.mean(voffs[-fit_length:])
 
-            print(offset_mean)
             #for i in range(len(iin)):
             #    u_in.append(iin[i] * x[0] + x[1])
             #    offs.append(iin[i] * y[0] + y[1])
@@ -391,8 +390,8 @@ class Chip_overview(object):
         plt.grid()
         logging.info("Saving plot %s" % filename)
         try:
-            plt.savefig('Chip' + chip[-3:]  + specifics + '.pdf')
-            plt.savefig('Chip' + chip[-3:]  + specifics + '.png')
+            plt.savefig('Chip' + chip[-3:] + '_' + specifics + '.pdf')
+            plt.savefig('Chip' + chip[-3:] + '_' + specifics + '.png')
         except:
             logging.error("Plot %s could not be saved" % filename)
             raise ValueError
@@ -405,21 +404,34 @@ class Chip_overview(object):
         self.vin_offset = []
         self.voffs_offset = []
         self.voffs_means = []
+        temps = [30, 15, 0, -15, -30, -40]
+        y_axis = []
     
         for item in self.vin_fits_vdd:
             self.vin_effective_res.append(item[0])
             self.vin_offset.append(item[1])
         for item in self.voffs_fits_vdd:
             self.voffs_slope.append(item[0])
-            self.voffs_offset.append(item[1]*2)
+            self.voffs_offset.append(item[1])
             self.voffs_means.append(item[2])
-        plt.plot(self.scan_parameter, self.vin_effective_res, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='red', label='Effective Input Resistances')
-        plt.plot(self.scan_parameter, self.vin_offset, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='blue', label='Offset from Vin')
-        plt.plot(self.scan_parameter, self.voffs_offset, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='green', label='Voffs fit offset')
-        plt.plot(self.scan_parameter, self.voffs_means, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='black', label='Mean Voffs')
+
+        for i in range(len(self.scan_parameter)):
+            y_axis.append(temps[int(self.scan_parameter[i])])
+
+        order = np.argsort(y_axis)
+        vin_effective_res_s = np.array(self.vin_effective_res)[order]
+        vin_offset_s = np.array(self.vin_offset)[order]
+        voffs_offset_s = np.array(self.voffs_offset)[order]
+        voffs_mean_s = np.array(self.voffs_means)[order]
+        scan_parameter_s = np.array(y_axis)[order]
+
+        plt.plot(scan_parameter_s, vin_effective_res_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='red', label='Effective Input Resistances')
+        plt.plot(scan_parameter_s, vin_offset_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='blue', label='Offset from Vin')
+        plt.plot(scan_parameter_s, voffs_offset_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='green', label='Voffs fit offset')
+        plt.plot(scan_parameter_s, voffs_mean_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='black', label='Mean Voffs')
         plt.legend()
         plt.grid()
-        plt.axis([-0.1,9,0.5,1.2])
+        plt.axis([min(y_axis)-5,max(y_axis)+5,0.5,1.2])
         plt.savefig("Regulator Spread_Chip" + chip[-3:] + specifics + ".pdf")
         plt.close()
         plt.figure()
@@ -595,44 +607,43 @@ class Chip_overview(object):
     def create_iv_overview(self, chip_id, flavor, specifics, main=False, **kwargs):
         self.mirror = []
         root_path = os.getcwd()
-        if 'Temperatur' in root_path:
-            print('plotting')
-        else:
+
+        if main:
             os.chdir(normpath(root_path + "/output/" + chip_id + "/" + flavor))
-        filelist, self.vin_fits_vdd, self.voffs_fits_vdd, self.scan_parameter = [],  [],  [],  []
+        else:
+            print('plotting')
+
+        filelist, self.vin_fits_vdd, self.voffs_fits_vdd, self.scan_parameter = [], [], [], []
         collected_data = {}
         self.create_fit_log(chip_id)
 
         for root, dirs, files in os.walk(".", topdown=False):
             for name in files:
-                if 'csv' in name and 'BN' in name and specifics in name:
+                if 'csv' in name and specifics in name:
                     filelist.append(name)
-        #self.averaging(filelist)
-    
+        # self.averaging(filelist)
+
         for i, files in enumerate(filelist):
             collected_data[files] = self.file_to_array(files)
-            self.scan_parameter.append(i)
+            # self.scan_parameter.append(i)
         if flavor == 'IV':
-            #self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
-            #self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
-            self.plot_iv(data = collected_data, chip=chip_id, specifics = specifics)
-            #self.plot_iv_spread(chip = chip_id, specifics = specifics)
-        elif flavor == 'IV2':
-            self.plot_iv2(data=collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
-
-        elif flavor == 'IV_NTC1' or flavor == 'Temperatur':
             # self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
             # self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
+            self.plot_iv(data=collected_data, chip=chip_id, specifics=specifics)
+            # self.plot_iv_spread(chip = chip_id, specifics = specifics)
+        elif flavor == 'IV2':
+            self.plot_iv2(data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
+
+        elif 'LoadReg' in specifics:
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics)
-            self.plot_iv_spread(chip = chip_id, specifics = specifics)
 
-
-    def file_to_array(self, file):
-        header = np.genfromtxt(file, dtype=None, delimiter = ',', max_rows = 1)
-        data = np.genfromtxt(file, float, delimiter=',', skip_header=1)
-        rows = len(data)
-        cols = len(data[0])
-        return {'header': header, 'data': data, 'rows' : rows, 'cols' : cols}
+        else:
+            # self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
+            # self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
+            #self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics)
+            #self.dump_plotdata()
+            #self.plot_iv_spread(chip=chip_id, specifics=specifics)
+            self.create_plot('V_out', chip_id)
 
 
 if __name__ == "__main__":
@@ -641,5 +652,5 @@ if __name__ == "__main__":
     chip_id = 'RD53B_SLDO_BN007'
     flavor = 'Temperatur'
     specifics = ''
-    chips.create_iv_overview(chip_id, flavor, specifics)
+    chips.create_iv_overview(chip_id, flavor, specifics, main=True)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
