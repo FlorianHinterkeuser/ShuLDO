@@ -3,57 +3,30 @@ Created on 26.09.2016
 
 @author: Florian
 '''
-import time
-import logging
-import csv
-import matplotlib.pyplot as plt
+
 import os.path
-import threading
-import numpy as np
-import plot as plot
-#from RD53A_IV import IV
-#import RD53A_IV
+
 import SLDO as SLDO
 import plot
 
-from scan_misc import Misc
-from basil.dut import Dut
-start = time.clock()
-chip_id='RD53B_SLDO_BN007'
-flavor='Temperatur' #switch Vin!!
-flavor2 = 'Temp_IV'
-filepath = "/output/" + chip_id + "/" + flavor
-fileName = flavor2 + "_" + chip_id + "_"
+run_number = 11 #SET +1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+chip_id='BN004'
+flavor='TID' #switch Vin!!
+filepath = "/Xray/" + chip_id + "/" + flavor
+fileName = "TID"
+
 if not os.path.exists(os.path.normpath(os.getcwd() + filepath)):
     os.makedirs(os.path.normpath(os.getcwd() + filepath))
 os.chdir(os.path.normpath(os.getcwd() + filepath))
+
 iv = SLDO.IV()
 iv.shutdown_tti()
-n_runs = 2
-runnbr = 5
-for i in range(1,n_runs):
-    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number=runnbr, remote_sense=False, OVP_on=False)
-    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.45)
-    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.475)
-    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.5)
-    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.525)
-    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.55)
-    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense=False, OVP_on=True, OVP_limit=0.575)
-    #iv.scan_IV2(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.6)
+
+iv.scan_IV(fileName, 1.2, 1, 100, 0.02, run_number=run_number, remote_sense=False, OVP_on=False)
+iv.scan_load_reg(fileName, iin = 0.6, max_iload = 0.6, steps = 50, stepSize = 0.03,run_number=run_number)
+
 iv.working_point()
-#iv.shutdown_tti()
-stop = time.clock()
-runtime = stop-start
-Plot = plot.Chip_overview()
-Plot.create_iv_overview(chip_id, flavor, '_' + str(runnbr))
-#===============================================================================
-# def FileAuf(filename):
-#     print filename
-#     logging.info("auf")
-#     with open(filename, 'wb') as outfile:
-#         f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
-#         f.writerow(['Input current [A]', 'Input voltage [V]', 'Output voltage [V]'])
-#     
-# for i in range(0,10):
-#     FileAuf(filename = "test" + str(i))
-#===============================================================================
+#Plot = plot.Chip_overview()
+#Plot.create_iv_overview(chip_id, flavor, str(run_number) + '_' + fileName + '_LineReg')
+#Plot.create_iv_overview(chip_id, flavor, str(run_number) + '_' + fileName + '_LoadReg')
