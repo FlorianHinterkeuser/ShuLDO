@@ -12,6 +12,7 @@ from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import Analysis
 import math
+import yaml
 
 class Chip_overview(object):
 
@@ -336,6 +337,26 @@ class Chip_overview(object):
             #    offs.append(iin[i] * y[0] + y[1])
             self.vin_fits_vdd.append([x[0], x[1]])
             self.voffs_fits_vdd.append([y[0], y[1], offset_mean])
+            try:
+                self.fit_log[flavor]
+            except:
+                self.fit_log[flavor] = {}
+
+            try:
+                self.fit_log[flavor]["run" + save_key]
+            except:
+                self.fit_log[flavor]["run" + save_key] = {}
+
+            try:
+                self.fit_log[flavor]["run" + save_key]["Offs"]
+            except:
+                self.fit_log[flavor]["run" + save_key]["Offs"] = {}
+
+            self.fit_log[flavor]["run" + save_key]["R_eff"] = float(x[0])
+            self.fit_log[flavor]["run" + save_key]["Offs"]["eff"] = float(x[1])
+            self.fit_log[flavor]["run" + save_key]["Offs"]["mean"] = float(offset_mean)
+            self.fit_log[flavor]["run" + save_key]["Offs"]["offset"] = float(y[1])
+            self.fit_log[flavor]["run" + save_key]["Offs"]["slope"] = float(y[0])
 
 
 
@@ -442,7 +463,136 @@ class Chip_overview(object):
             for row in interpreted_data[1]:
                 spamwriter.writerow(row)
 
-    def create_iv_overview(self, chip_id, flavor, specifics,  **kwargs):
+    def file_to_array(self, file):
+        header = np.genfromtxt(file, dtype=None, delimiter = ',', max_rows = 1)
+        data = np.genfromtxt(file, float, delimiter=',', skip_header=1)
+        rows = len(data)
+        cols = len(data[0])
+        return {'header': header, 'data': data, 'rows' : rows, 'cols' : cols}
+
+    def dump_plotdata(self):
+        log = open(self.name, 'w+')
+        yaml.dump(self.fit_log, log)
+        log.close()
+
+    def create_fit_log(self, chip_id):
+        self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
+        if os.path.isfile(self.name):
+            log = open(self.name, 'r')
+            self.fit_log = yaml.load(log)
+            log.close()
+        else:
+            self.fit_log = {}
+
+    def fit_to_data(self, x, y, save_key, name, fit_length):
+        fit_res = np.polyfit(x[-fit_length:], y[-fit_length:], 1)
+        fit_mean = np.mean(y[-fit_length:])
+
+        try:
+            self.fit_log[flavor]
+        except:
+            self.fit_log[flavor] = {}
+
+        try:
+            self.fit_log[flavor]["run" + save_key]
+        except:
+            self.fit_log[flavor]["run" + save_key] = {}
+
+        try:
+            self.fit_log[flavor]["run" + save_key][name]
+        except:
+            self.fit_log[flavor]["run" + save_key][name] = {}
+
+        self.fit_log[flavor]["run" + save_key][name]["mean"] = float(fit_mean)
+        self.fit_log[flavor]["run" + save_key][name]["offset"] = float(fit_res[1])
+        self.fit_log[flavor]["run" + save_key][name]["slope"] = float(fit_res[0])
+
+    def plot_from_fit_log(self, ax1, ax2, scale1, scale2, scale_x, name):
+        fit_log = yaml.load(open(self.name, 'r'))
+        p_slope, p_mean, p_offs, x_axis = [], [], [], []
+
+        for runs in fit_log[flavor]:
+            runs_save = runs[3:]
+            x_axis.append(int(runs_save))
+            p_slope.append(fit_log[flavor][runs][name]['slope'])
+            p_mean.append(fit_log[flavor][runs][name]['mean'])
+            p_offs.append(fit_log[flavor][runs][name]['offset'])
+
+        order = np.argsort(x_axis)
+        p_slope_s = np.array(p_slope)[order]
+        p_mean_s = np.array(p_mean)[order]
+        p_offs_s = np.array(p_offs)[order]
+        x_axis_s = np.array(x_axis)[order]
+
+        label1 = str(name + ' slope')
+        label2 = str(name + ' mean')
+        label3 = str(name + ' offset')
+        color1 = 'red'
+        color2 = 'green'
+        color3 = 'blue'
+        ax1.plot(x_axis_s, p_slope_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=color1, label=label1)
+        ax2.plot(x_axis_s, p_mean_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=color2, label=label2)
+        ax2.plot(x_axis_s, p_offs_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=color3, label=label3)
+
+        new_min = (min(p_slope) - min(p_slope)*0.1)
+        if new_min < scale1[0]:
+            scale1[0] = new_min
+
+        new_max = (max(p_slope) + max(p_slope) * 0.1)
+        if new_max > scale1[1]:
+            scale1[1] = new_max
+
+        new_min = (min(p_offs) - min(p_offs) * 0.1)
+        if new_min < scale2[0]:
+            scale2[0] = new_min
+
+        new_max = (max(p_offs) + max(p_offs) * 0.1)
+        if new_max > scale2[1]:
+            scale2[1] = new_max
+
+        new_min = (min(p_mean) - min(p_mean) * 0.1)
+        if new_min < scale2[0]:
+            scale2[0] = new_min
+
+        new_max = (max(p_mean) + max(p_mean) * 0.1)
+        if new_max > scale2[1]:
+            scale2[1] = new_max
+
+        new_min = (float(min(x_axis_s)) - float(min(x_axis_s)) * 0.1)
+        if new_min < scale2[0]:
+            scale_x[0] = new_min
+
+        new_max = (float(max(x_axis_s)) + float(max(x_axis_s)) * 0.1)
+        if new_max > scale2[1]:
+            scale_x[1] = new_max
+
+    def create_plot(self, name, chip_id):
+        try:
+            self.name
+        except:
+            self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
+
+        fig = plt.figure(1)
+        ax1 = fig.add_subplot(111)
+        ax2 = ax1.twinx()
+        scale_x = [1.0, 2.0]
+        scale1 = [0.1, 0.2]
+        scale2 = [0.5, 1.2]
+
+        self.plot_from_fit_log(ax1, ax2, scale1, scale2, scale_x, name)
+
+        ax1.set_xlabel(flavor)
+        ax1.set_ylabel("Slope Voltage  / V")
+        ax2.set_ylabel("Voltage / V")
+        ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
+        ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
+
+        plt.legend()
+        plt.grid()
+        plt.savefig(name + "_Fits_" + chip_id[-3:] +".pdf")
+        plt.close()
+
+    def create_iv_overview(self, chip_id, flavor, specifics, main=False, **kwargs):
         self.mirror = []
         root_path = os.getcwd()
         if 'Temperatur' in root_path:
@@ -451,7 +601,8 @@ class Chip_overview(object):
             os.chdir(normpath(root_path + "/output/" + chip_id + "/" + flavor))
         filelist, self.vin_fits_vdd, self.voffs_fits_vdd, self.scan_parameter = [],  [],  [],  []
         collected_data = {}
-        
+        self.create_fit_log(chip_id)
+
         for root, dirs, files in os.walk(".", topdown=False):
             for name in files:
                 if 'csv' in name and 'BN' in name and specifics in name:
