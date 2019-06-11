@@ -68,14 +68,20 @@ class IV(object):
         misc.set_scan('Sourcemeter3', channel=0, mode='CURR', vlim=2, ilim=0)
 
         fncounter=1
+
         if OVP_on:
             filename = file_name +"OVP_" + str(OVP_limit)+"V_"+ str(run_number) + ".csv"
         else:
-            filename = file_name + "OVP_ref_" + str(run_number) + ".csv"
+            filename =  str(run_number) + "_"+ file_name + "_LineReg.csv"
         while os.path.isfile(file_name):
             filename = filename.split('.')[0]
             filename = filename + "_" + str(fncounter) + ".csv"
             fncounter = fncounter + 1
+
+
+        if os.path.isfile(filename):
+            logging.error("Change run number, you moron!")
+            raise RuntimeError
 
         with open(filename, 'wb') as outfile:
             f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
@@ -256,11 +262,15 @@ class IV(object):
 
 
         fncounter=1
-        filename = file_name + str(run_number) + ".csv"
+        filename = str(run_number) + "_"+ file_name + "_LoadReg.csv"
+
+        if os.path.isfile(filename):
+            logging.error("Change run number, you moron!")
+            raise RuntimeError
 
         while os.path.isfile(file_name):
             filename = filename.split('.')[0]
-            filename = filename + "_" + str(fncounter) + ".csv"
+            filename = filename + "_" + str(fncounter) + "LoadReg.csv"
             fncounter = fncounter + 1
 
         with open(filename, 'wb') as outfile:
