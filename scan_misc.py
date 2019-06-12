@@ -186,7 +186,7 @@ class Misc(object):
         See get_current_reading().
         '''
         self.get_device_type(device)
-        number = 10
+        number = 5
         measurement = np.empty(number)
         i = 0
 
