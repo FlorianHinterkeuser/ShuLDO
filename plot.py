@@ -403,6 +403,8 @@ class Chip_overview(object):
         plt.close()
 
     def plot_iv_spread(self, chip = '000', specifics = ''):
+        fit_log = yaml.load(open(self.name, 'r'))
+
         self.vin_effective_res = []
         self.voffs_slope = []
         self.vin_offset = []
@@ -410,32 +412,30 @@ class Chip_overview(object):
         self.voffs_means = []
         temps = [30, 15, 0, -15, -30, -40]
         y_axis = []
-    
-        for item in self.vin_fits_vdd:
-            self.vin_effective_res.append(item[0])
-            self.vin_offset.append(item[1])
-        for item in self.voffs_fits_vdd:
-            self.voffs_slope.append(item[0])
-            self.voffs_offset.append(item[1])
-            self.voffs_means.append(item[2])
 
-        for i in range(len(self.scan_parameter)):
-            y_axis.append(self.dose[int(self.scan_parameter[i])])
+        for runs in fit_log[flavor]:
+            runs_save = runs[3:]
+            y_axis.append(int(runs_save))
+            self.vin_effective_res.append(fit_log[flavor][runs]['R_eff'])
+            self.voffs_slope.append(fit_log[flavor][runs]['Offs']['slope'])
+            self.vin_offset.append(fit_log[flavor][runs]['Offs']['eff'])
+            self.voffs_offset.append(fit_log[flavor][runs]['Offs']['offset'])
+            self.voffs_means.append(fit_log[flavor][runs]['Offs']['mean'])
 
         order = np.argsort(y_axis)
         vin_effective_res_s = np.array(self.vin_effective_res)[order]
         vin_offset_s = np.array(self.vin_offset)[order]
         voffs_offset_s = np.array(self.voffs_offset)[order]
         voffs_mean_s = np.array(self.voffs_means)[order]
-        scan_parameter_s = np.array(y_axis)[order]
+        x_axis_s = np.array(y_axis)[order]
 
-        plt.semilogx(scan_parameter_s, vin_effective_res_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='red', label='Effective Input Resistances')
-        plt.semilogx(scan_parameter_s, vin_offset_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='blue', label='Offset from Vin')
-        plt.semilogx(scan_parameter_s, voffs_offset_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='green', label='Voffs fit offset')
-        plt.semilogx(scan_parameter_s, voffs_mean_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='black', label='Mean Voffs')
+        plt.semilogx(x_axis_s, vin_effective_res_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='red', label='Effective Input Resistances')
+        plt.semilogx(x_axis_s, vin_offset_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='blue', label='Offset from Vin')
+        plt.semilogx(x_axis_s, voffs_offset_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='green', label='Voffs fit offset')
+        plt.semilogx(x_axis_s, voffs_mean_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='black', label='Mean Voffs')
         plt.legend()
         plt.grid()
-        plt.axis([min(y_axis)-5,max(y_axis)+5,0.5,1.2])
+        plt.axis([min(y_axis), max(y_axis)+5, 0.5, 1.2])
         plt.savefig("Regulator Spread_Chip" + chip[-3:] +"_"+ flavor + specifics + ".pdf")
         plt.close()
         plt.figure()
