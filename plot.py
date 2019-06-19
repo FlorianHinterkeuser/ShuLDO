@@ -623,6 +623,21 @@ class Chip_overview(object):
         plt.savefig(chip_id + "_"+ flavor + "_Fit_" + name +".pdf")
         plt.close()
 
+    def sort_filelist(self, filelist):
+        fl = []
+        for file in filelist:
+            save_k = file.split('_')
+            save_key = save_k[0]
+            fl.append(int(save_key))
+        order = np.argsort(fl)
+
+        for i in range(len(order)):
+            fl[i] = filelist[order[i]]
+
+        return fl
+
+
+
     def create_iv_overview(self, chip_id, flavor, specifics, main=False, **kwargs):
         self.mirror = []
         root_path = os.getcwd()
@@ -645,6 +660,7 @@ class Chip_overview(object):
                 if 'csv' in name and specifics in name and flavor in name:
                     filelist.append(name)
         # self.averaging(filelist)
+        filelist = self.sort_filelist(filelist)
 
         for i, files in enumerate(filelist):
             collected_data[files] = self.file_to_array(files)
