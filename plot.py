@@ -501,8 +501,12 @@ class Chip_overview(object):
             self.fit_log = {}
 
     def fit_to_data(self, x, y, save_key, name, fit_length):
-        fit_res = np.polyfit(x[fit_length[0]:], y[fit_length[0]:], 1)
-        fit_mean = np.mean(y[fit_length[0]:])
+        if flavor == 'LoadReg':
+            fit_res = np.polyfit(x[fit_length[0]:fit_length[1]], y[fit_length[0]:fit_length[1]], 1)
+            fit_mean = np.mean(y[fit_length[0]:fit_length[1]])
+        else:
+            fit_res = np.polyfit(x[fit_length[0]:], y[fit_length[0]:], 1)
+            fit_mean = np.mean(y[fit_length[0]:])
 
         try:
             self.fit_log[flavor]
@@ -540,7 +544,7 @@ class Chip_overview(object):
         p_offs_s = np.array(p_offs)[order]
         x_axis_s = np.array(x_axis)[order]
 
-        for i in range(len(self.scan_parameter)):
+        for i in range(len(x_axis_s)):
             x_axis_c.append(self.dose[int(x_axis_s[i])])
 
         label1 = str(name + ' slope')
