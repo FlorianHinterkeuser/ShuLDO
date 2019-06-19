@@ -251,9 +251,11 @@ class Chip_overview(object):
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
         scale2 = [0, 40]
+        scalex = 0
         ntc1_exists = False
         ntc2_exists = False
         ntc3_exists = False
+        legend_dict = {}
 
         for key in data.keys():
             save_k = key.split('_')
@@ -296,12 +298,15 @@ class Chip_overview(object):
 
             ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='red',
                      label='Input Voltage')
-            #ax1.fill_between(iin, dvinl, dvinh, facecolors='tomato')
+            legend_dict['Input Voltage'] = 'red'
+            ax1.fill_between(iin, dvinl, dvinh, facecolors='tomato')
 
             ax1.plot(iin, vout, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='purple',
                      label='Output Voltage')
+            legend_dict['Output Voltage'] = 'purple'
             ax2.plot(iin, vext, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='black',
                      label='NTC')
+            legend_dict['NTC'] = 'black'
 
             min_ntc = min(vext) - 5
             max_ntc = max(vext) + 5
@@ -310,24 +315,34 @@ class Chip_overview(object):
             if scale2[1] < max_ntc:
                 scale2[1] = max_ntc
 
+
+            max_x = max(iin) + 0.05
+            if scalex < max_x:
+                scalex = max_x
             #if 'NTC1' in key:
             ntc1_exists = True
             ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='blue',
                  label='Offset Voltage')
+            legend_dict['Offset Voltage'] = 'blue'
             ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='olive',
                  label='Reference Voltage')
+            legend_dict['Reference Voltage'] = 'olive'
             #elif 'NTC2' in key:
             #    ntc2_exists = True
             #    ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='green',
             #             label='R_ext Voltage')
+            #    legend_dict['R_ext Voltage'] = 'green'
             #    ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='orange',
             #             label='Bandgap Voltage')
+            #    legend_dict['Bandgap Voltage'] = 'orange'
             #elif 'NTC3' in key:
             ntc3_exists = True
             ax1.plot(iin, voutpre, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='yellow',
                      label='Prereg Output Voltage')
+            legend_dict['Prereg Output Voltage'] = 'yellow'
             ax1.plot(iin, iref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
                      label='Reference Current')
+            legend_dict['Reference Current Sense'] = 'brown'
 
             #Fits to determine R_eff and Offs
             x = np.polyfit(iin[fit_length[0]:fit_length[1]], vin[fit_length[0]:fit_length[1]], 1)
@@ -368,28 +383,15 @@ class Chip_overview(object):
             self.fit_log[flavor]["run" + save_key]["Offs"]["offset"] = float(y[1])
             self.fit_log[flavor]["run" + save_key]["Offs"]["slope"] = float(y[0])
 
-        ax2.axis([0.1, 1.2, scale2[0], scale2[1]])
-        ax1.set_xlabel("Input Current / A")
+        ax2.axis([0.1, scalex, scale2[0], scale2[1]])
+
+        if flavor == 'LoadReg':
+            ax1.set_xlabel("Load Current / A")
+        else:
+            ax1.set_xlabel("Input Current / A")
+
         ax1.set_ylabel("Voltage / V")
         ax2.set_ylabel("NTC Temperature")
-        if ntc1_exists and ntc2_exists and ntc3_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'R_ext Voltage': 'green', 'Bandgap': 'orange',
-                    'Prereg Reference Voltage': 'brown', 'Prereg Output Voltage': 'yellow'}
-        elif ntc1_exists and ntc2_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'R_ext Voltage': 'green', 'Bandgap': 'orange'}
-        elif ntc1_exists and ntc3_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive', 'Reference Current': 'brown', 'Prereg Output Voltage': 'yellow'}
-        elif ntc2_exists and ntc3_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'R_ext Voltage': 'green', 'Bandgap': 'orange', 'Prereg Reference Voltage': 'brown', 'Prereg Output Voltage': 'yellow'}
-        elif ntc1_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive'}
-        elif ntc2_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'R_ext Voltage': 'green', 'Bandgap': 'orange'}
-        elif ntc3_exists:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Prereg Reference Voltage': 'brown', 'Prereg Output Voltage': 'yellow'}
-        else:
-            legend_dict = {'Input Voltage': 'red', 'Output Voltage': 'purple', 'NTC': 'black', 'Offset Voltage': 'blue',
-                           'Reference Voltage': 'olive'}
 
         colors = legend_dict.values()
         labels = legend_dict.keys()
@@ -555,14 +557,17 @@ class Chip_overview(object):
         color2 = 'green'
         color3 = 'blue'
         ax1.semilogx(x_axis_c, p_slope_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=color1, label=label1)
+        self.legend_dict[label1] = color1
         ax2.semilogx(x_axis_c, p_mean_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=color2, label=label2)
+        self.legend_dict[label2] = color2
         ax2.semilogx(x_axis_c, p_offs_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=color3, label=label3)
+        self.legend_dict[label3] = color3
 
-        new_min = (min(p_slope) - min(p_slope)*0.1)
+        new_min = (min(p_slope) - 0.01)
         if new_min < scale1[0]:
             scale1[0] = new_min
 
-        new_max = (max(p_slope) + max(p_slope) * 0.1)
+        new_max = (max(p_slope) + 0.01)
         if new_max > scale1[1]:
             scale1[1] = new_max
 
@@ -582,11 +587,11 @@ class Chip_overview(object):
         if new_max > scale2[1]:
             scale2[1] = new_max
 
-        new_min = (float(min(x_axis_s)) - float(min(x_axis_s)) * 0.1)
+        new_min = (float(min(x_axis_c)) - float(min(x_axis_c)) * 0.1)
         if new_min < scale2[0]:
             scale_x[0] = new_min
 
-        new_max = (float(max(x_axis_s)) + float(max(x_axis_s)) * 0.1)
+        new_max = (float(max(x_axis_c)) + float(max(x_axis_c)) * 0.1)
         if new_max > scale2[1]:
             scale_x[1] = new_max
 
@@ -600,18 +605,23 @@ class Chip_overview(object):
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
         scale_x = [1.0, 2.0]
-        scale1 = [0.1, 0.05]
+        scale1 = [0.1, 0.01]
         scale2 = [0.5, 0.]
+        self.legend_dict = {}
 
         self.plot_from_fit_log(ax1, ax2, scale1, scale2, scale_x, name)
 
-        ax1.set_xlabel(flavor2)
-        ax1.set_ylabel("Slope Voltage  / V")
+        ax1.set_xlabel(flavor2 + ' / Mrad')
+        ax1.set_ylabel("Slope Voltage  / V/Mrad")
         ax2.set_ylabel("Voltage / V")
         ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
         ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
 
-        plt.legend()
+        colors = self.legend_dict.values()
+        labels = self.legend_dict.keys()
+        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+
+        plt.legend(lines, labels, loc=2)
         plt.grid()
         plt.savefig(chip_id + "_"+ flavor + "_Fit_" + name +".pdf")
         plt.close()
@@ -623,7 +633,7 @@ class Chip_overview(object):
         if main:
             if flavor2 is 'TID':
                 os.chdir(normpath(root_path + "/Xray/" + chip_id + "/" + flavor2))
-                self.dose = [0.1, 0.2, 1., 2., 3., 5., 10., 20., 50., 100., 200., 300., 400., 500., 600.]
+                self.dose = [0, 0.1, 0.2, 1., 2., 3., 5., 10., 20., 50., 100., 200., 300., 400., 500., 600.]
             else:
                 os.chdir(normpath(root_path + "/output/" + chip_id + "/" + flavor))
         else:
