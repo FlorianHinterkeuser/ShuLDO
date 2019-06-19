@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import Analysis
 import math
 import yaml
+from matplotlib.pyplot import cm
 
 class Chip_overview(object):
 
@@ -74,56 +75,49 @@ class Chip_overview(object):
         logging.info("Finished.")
         plt.close()
 
-    def plot_iv_col2(self, data=None, chip='000', flavor='IV', specifics='', filename="file", fit_length=50):
+    def plot_iv_col2(self, filelist, name='V_in', data=None, chip='000', flavor='IV', specifics='', filename="file"):
         fig = plt.figure(1)
         ax1 = fig.add_subplot(111)
-        ax1.axis([0, 1.2, 0, 2.1])
+        scalex = 0.6
 
-        colorsceme = ['red', 'blue', 'green', 'olive', 'purple', 'black']
-        colorcount = 0
+        legend_dict = {}
+        list_of_names = {'V_in': 1, 'V_out': 2, 'V_ref': 3, 'V_offs': 4, 'I_ref_sense': 5, 'V_out_pre': 6, 'NTC': 7}
+        color = iter(cm.rainbow(np.linspace(0, 1, len(data.keys()))))
 
-        for key in data.keys():
-            print(key)
+        for key in filelist:
+            c = next(color)
+
+            save_k = key.split('_')
+            save_key = save_k[0]
+            save_key = int(save_key)
+
             datas = data[key]['data']
-            iin, vin, vout, vref, voffs = [], [], [], [], []
+            iin, vin = [], []
 
-            logging.info("Plotting averaged values")
+
             for row in datas:
                 iin.append((row[0]))
-                vin.append(row[1])
-                vout.append(row[2])
-                vref.append(row[3])
-                voffs.append(row[4])
+                vin.append(row[list_of_names[name]])
 
-            ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=colorsceme[colorcount],
-                         label='Input Voltage')
-            ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=colorsceme[colorcount],
-                         label='Offset Voltage')
-            ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=colorsceme[colorcount],
-                         label='Reference Voltage')
-            ax1.plot(iin, vout, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=colorsceme[colorcount],
-                         label='Output Voltage')
+            label = name + ' (' + str(self.dose[save_key]) + 'Mrad)'
 
-            x = np.polyfit(iin[-fit_length:], vin[-fit_length:], 1)
-            y = np.polyfit(iin[-fit_length:], voffs[-fit_length:], 1)
+            ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=c,
+                         label=label)
 
-            u_in = []
-            offs = []
+            legend_dict[label] = c
 
-            offset_mean = np.mean(voffs[-fit_length:]) * 2
-            for i in range(len(iin)):
-                u_in.append(iin[i] * x[0] + x[1])
-                offs.append(iin[i] * y[0] + y[1])
-            self.vin_fits_vdd.append([x[0], x[1]])
-            self.voffs_fits_vdd.append([y[0], y[1], offset_mean])
+            max_x = max(iin) + 0.05
+            if scalex < max_x:
+                scalex = max_x
 
-            #            ax1.plot(iin, u_in, linestyle='--', linewidth= 0.05, markersize = '.4', color='orange', label = 'Reff from input Voltage fit = %.2f Ohm, offset = %.2f V' % (x[0], x[1]))
-            #            ax1.plot(iin, offs, linestyle='--', linewidth= 0.05, markersize = '.4', color='cyan', label = 'Offset from measurement = %.2f V, Slope = %.2f V/A' % (offset_mean,y[0]))
-
-        ax1.set_xlabel("Input Current / A")
+        if flavor == 'LoadReg':
+            ax1.set_xlabel("Load Current / A")
+        else:
+            ax1.set_xlabel("Input Current / A")
         ax1.set_ylabel("Voltage / V")
-        legend_dict = {'Input Voltage': 'red', 'Offset Voltage': 'blue', 'Reference Voltage': 'olive',
-                           'Output Voltage': 'purple'}
+
+        ax1.axis([0, scalex, 0, 2.1])
+
         colors = legend_dict.values()
         labels = legend_dict.keys()
         lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
@@ -132,8 +126,7 @@ class Chip_overview(object):
         plt.grid()
         logging.info("Saving plot %s" % filename)
         try:
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.pdf')
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.png')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '_' + name + '_Colored.pdf')
         except:
             logging.error("Plot %s could not be saved" % filename)
             raise ValueError
@@ -663,22 +656,53 @@ class Chip_overview(object):
         elif 'LoadReg' in flavor:
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics, fit_length=[0, 15])
             self.dump_plotdata()
+
             self.create_plot('V_out', chip_id)
             self.create_plot('V_outpre', chip_id)
             self.create_plot('V_ref', chip_id)
             self.create_plot('I_ref', chip_id)
             self.create_plot('Offs', chip_id)
 
+            self.plot_iv_col2(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='I_ref_sense', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='V_out_pre', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='NTC', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+
         else:
             #self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
             #self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics)
             self.dump_plotdata()
+
             self.plot_iv_spread(chip=chip_id, specifics=specifics)
             self.create_plot('V_out', chip_id)
             self.create_plot('V_outpre', chip_id)
             self.create_plot('V_ref', chip_id)
             self.create_plot('I_ref', chip_id)
+
+            self.plot_iv_col2(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
+            self.plot_iv_col2(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='I_ref_sense', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='V_out_pre', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col2(filelist, name='NTC', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
 
 if __name__ == "__main__":
     root_path = os.getcwd()
