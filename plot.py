@@ -345,16 +345,9 @@ class Chip_overview(object):
             self.fit_to_data(iin, voutpre, save_key, 'V_outpre', fit_length)
             self.fit_to_data(iin, iref, save_key, 'I_ref', fit_length)
             self.fit_to_data(iin, vref, save_key, 'V_ref', fit_length)
-            #u_in = []
-            #offs = []
 
             offset_mean = np.mean(voffs[fit_length[0]:])
 
-            #for i in range(len(iin)):
-            #    u_in.append(iin[i] * x[0] + x[1])
-            #    offs.append(iin[i] * y[0] + y[1])
-            self.vin_fits_vdd.append([x[0], x[1]])
-            self.voffs_fits_vdd.append([y[0], y[1], offset_mean])
             try:
                 self.fit_log[flavor]
             except:
@@ -620,7 +613,7 @@ class Chip_overview(object):
 
         plt.legend(lines, labels, loc=2)
         plt.grid()
-        plt.savefig(chip_id + "_"+ flavor + "_Fit_" + name +".pdf")
+        plt.savefig(chip_id + "_" + flavor + "_Fit_" + name +".pdf")
         plt.close()
 
     def sort_filelist(self, filelist):
