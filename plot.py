@@ -257,8 +257,8 @@ class Chip_overview(object):
             datas = data[key]['data']
             iin, vin, vext, vout, vref, voffs, iref, voutpre = [], [], [], [], [], [], [], []
             diin, dvin, dvext, dvout, dvref, dvoffs, diref, dvoutpre = [], [], [], [], [], [], [], []
-            diinl, dvinl, dvextl, dvoutl, dvrefl, dvoffsl = [], [], [], [], [], []
-            diinh, dvinh, dvexth, dvouth, dvrefh, dvoffsh = [], [], [], [], [], []
+            diinl, dvinl, dvextl, dvoutl, dvrefl, dvoffsl, direfl, dvoutprel = [], [], [], [], [], [], [], []
+            diinh, dvinh, dvexth, dvouth, dvrefh, dvoffsh, direfh, dvoutpreh = [], [], [], [], [], [], [], []
 
             for row in datas:
                 iin.append((row[0]))
@@ -277,26 +277,38 @@ class Chip_overview(object):
                 dvoutpre.append(row[14])
 #                vext.append(1.0/row[5])
                 vext.append(1/(1./298.15 + 1./3435. * math.log(row[7]/10000.))-273.15)
-            #for i in range(len(dvin)):
-            #    dvinl.append(vin[i] - dvin[i])
-            #    dvinh.append(vin[i] + dvin[i])
-            #    dvextl.append(vext[i]-dvext[i])
-            #    dvexth.append(vext[i]+dvext[i])
-            #    dvoutl.append(vout[i]-dvout[i])
-            #    dvouth.append(vout[i]+dvout[i])
-            #    dvrefl.append(vref[i]-dvref[i])
-            #    dvrefh.append(vref[i]+dvref[i])
-            #    dvoffsl.append(voffs[i]-dvoffs[i])
-            #    dvoffsh.append(voffs[i]+dvoffs[i])
+            if specifics != '':
+                for i in range(len(dvin)):
+                    dvinl.append(vin[i] - dvin[i])
+                    dvinh.append(vin[i] + dvin[i])
+
+                    dvoutl.append(vout[i]-dvout[i])
+                    dvouth.append(vout[i]+dvout[i])
+
+                    dvrefl.append(vref[i]-dvref[i])
+                    dvrefh.append(vref[i]+dvref[i])
+
+                    dvoffsl.append(voffs[i]-dvoffs[i])
+                    dvoffsh.append(voffs[i]+dvoffs[i])
+
+                    direfl.append(voffs[i] - diref[i])
+                    direfh.append(voffs[i] + diref[i])
+
+                    dvoutprel.append(voutpre[i] - dvoutpre[i])
+                    dvoutpreh.append(voutpre[i] + dvoutpre[i])
 
             ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='red',
                      label='Input Voltage')
             legend_dict['Input Voltage'] = 'red'
-            ax1.fill_between(iin, dvinl, dvinh, facecolors='tomato')
+            if specifics != '':
+                ax1.fill_between(iin, dvinl, dvinh, facecolors='tomato')
 
             ax1.plot(iin, vout, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='purple',
                      label='Output Voltage')
             legend_dict['Output Voltage'] = 'purple'
+            if specifics != '':
+                ax1.fill_between(iin, dvoutl, dvouth, facecolors='magenta')
+
             ax2.plot(iin, vext, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='black',
                      label='NTC')
             legend_dict['NTC'] = 'black'
@@ -308,34 +320,50 @@ class Chip_overview(object):
             if scale2[1] < max_ntc:
                 scale2[1] = max_ntc
 
-
             max_x = max(iin) + 0.05
             if scalex < max_x:
                 scalex = max_x
+
             #if 'NTC1' in key:
             ntc1_exists = True
             ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='blue',
                  label='Offset Voltage')
             legend_dict['Offset Voltage'] = 'blue'
+            if specifics != '':
+                ax1.fill_between(iin, dvoffsl, dvoffsh, facecolors='lightblue')
+
             ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='olive',
                  label='Reference Voltage')
             legend_dict['Reference Voltage'] = 'olive'
+            if specifics != '':
+                ax1.fill_between(iin, dvrefl, dvrefh, facecolors='yellowgreen')
             #elif 'NTC2' in key:
             #    ntc2_exists = True
             #    ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='green',
             #             label='R_ext Voltage')
             #    legend_dict['R_ext Voltage'] = 'green'
+            #    if specifics != '':
+            #       ax1.fill_between(iin, dvoffsl, dvoffsh, facecolors='lightgreen')
+            #
             #    ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='orange',
             #             label='Bandgap Voltage')
             #    legend_dict['Bandgap Voltage'] = 'orange'
+            #    if specifics != '':
+            #       ax1.fill_between(iin, dvrefl, dvrefh, facecolors='navajowhite')
+            #
             #elif 'NTC3' in key:
             ntc3_exists = True
             ax1.plot(iin, voutpre, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='yellow',
                      label='Prereg Output Voltage')
             legend_dict['Prereg Output Voltage'] = 'yellow'
+            if specifics != '':
+                ax1.fill_between(iin, dvoutprel, dvoutpreh, facecolors='lightyellow')
+
             ax1.plot(iin, iref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
                      label='Reference Current')
             legend_dict['Reference Current Sense'] = 'brown'
+            if specifics != '':
+                ax1.fill_between(iin, direfl, direfh, facecolors='indianred')
 
             #Fits to determine R_eff and Offs
             x = np.polyfit(iin[fit_length[0]:fit_length[1]], vin[fit_length[0]:fit_length[1]], 1)
@@ -688,8 +716,7 @@ class Chip_overview(object):
                               specifics=specifics)
             self.plot_iv_col2(filelist, name='V_out_pre', data=collected_data, chip=chip_id, flavor=flavor,
                               specifics=specifics)
-            self.plot_iv_col2(filelist, name='NTC', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
+
 
         else:
             #self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
@@ -714,15 +741,13 @@ class Chip_overview(object):
                               specifics=specifics)
             self.plot_iv_col2(filelist, name='V_out_pre', data=collected_data, chip=chip_id, flavor=flavor,
                               specifics=specifics)
-            self.plot_iv_col2(filelist, name='NTC', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
 
 if __name__ == "__main__":
     root_path = os.getcwd()
     chips = Chip_overview()
     chip_id = 'BN004'
     flavor2 = 'TID'
-    flavor = 'LoadReg'
-    specifics = ''
+    flavor = 'LineReg#'
+    specifics = '5'
     chips.create_iv_overview(chip_id, flavor, specifics, main=True)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
