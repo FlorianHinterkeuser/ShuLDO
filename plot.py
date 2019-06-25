@@ -433,6 +433,8 @@ class Chip_overview(object):
         self.voffs_means = []
         temps = [30, 15, 0, -15, -30, -40]
         y_axis = []
+        x_axis_c = []
+        x_err = []
 
         for runs in fit_log[flavor]:
             runs_save = runs[3:]
@@ -450,13 +452,18 @@ class Chip_overview(object):
         voffs_mean_s = np.array(self.voffs_means)[order]
         x_axis_s = np.array(y_axis)[order]
 
-        plt.semilogx(x_axis_s, vin_effective_res_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='red', label='Effective Input Resistances')
-        plt.semilogx(x_axis_s, vin_offset_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='blue', label='Offset from Vin')
-        plt.semilogx(x_axis_s, voffs_offset_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='green', label='Voffs fit offset')
-        plt.semilogx(x_axis_s, voffs_mean_s, linestyle='-', marker='.', linewidth= 0.3, markersize = '3', color='black', label='Mean Voffs')
+        for i in range(len(x_axis_s)):
+            x_axis_c.append(self.dose[int(x_axis_s[i])])
+            x_err.append(self.dose[int(x_axis_s[i])]*0.2)
+
+        plt.errorbar(x_axis_c, vin_effective_res_s, None, x_err, marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='red', capsize= 2, markeredgewidth=1, label='Effective Input Resistances')
+        plt.errorbar(x_axis_c, vin_offset_s, None, x_err,  marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='blue', capsize= 2, markeredgewidth=1, label='Offset from Vin')
+        plt.errorbar(x_axis_c, voffs_offset_s, None, x_err, marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='green', capsize= 2, markeredgewidth=1, label='Voffs fit offset')
+        plt.errorbar(x_axis_c, voffs_mean_s, None, x_err, marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='black', capsize= 2, markeredgewidth=1, label='Mean Voffs')
+        plt.semilogx()
         plt.legend()
         plt.grid()
-        plt.axis([min(y_axis), max(y_axis)+5, 0.5, 1.2])
+        plt.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.5, 1.2])
         plt.savefig("Regulator Spread_Chip" + chip[-3:] +"_"+ flavor + specifics + ".pdf")
         plt.close()
         plt.figure()
@@ -551,6 +558,7 @@ class Chip_overview(object):
     def plot_from_fit_log(self, ax1, ax2, scale1, scale2, scale_x, name):
         fit_log = yaml.load(open(self.name, 'r'))
         p_slope, p_mean, p_offs, x_axis, x_axis_c = [], [], [], [], []
+        x_err = []
 
         for runs in fit_log[flavor]:
             runs_save = runs[3:]
@@ -567,6 +575,7 @@ class Chip_overview(object):
 
         for i in range(len(x_axis_s)):
             x_axis_c.append(self.dose[int(x_axis_s[i])])
+            x_err.append(self.dose[int(x_axis_s[i])]*0.2)
 
         label1 = str(name + ' slope')
         label2 = str(name + ' mean')
@@ -574,12 +583,15 @@ class Chip_overview(object):
         color1 = 'red'
         color2 = 'green'
         color3 = 'blue'
-        ax1.semilogx(x_axis_c, p_slope_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=color1, label=label1)
+        ax1.errorbar(x_axis_c, p_slope_s, None, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color1, capsize= 2, markeredgewidth=1, label=label1)
+        ax1.semilogx()
         self.legend_dict[label1] = color1
-        ax2.semilogx(x_axis_c, p_mean_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=color2, label=label2)
+        ax2.errorbar(x_axis_c, p_mean_s, None, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color2, capsize= 2, markeredgewidth=1, label=label2)
         self.legend_dict[label2] = color2
-        ax2.semilogx(x_axis_c, p_offs_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=color3, label=label3)
+        ax2.errorbar(x_axis_c, p_offs_s, None, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color3, capsize= 2, markeredgewidth=1, label=label3)
+        ax2.semilogx()
         self.legend_dict[label3] = color3
+
 
         new_min = (min(p_slope) - 0.01)
         if new_min < scale1[0]:
@@ -666,7 +678,7 @@ class Chip_overview(object):
         if main:
             if flavor2 is 'TID':
                 os.chdir(normpath(root_path + "/Xray/" + chip_id + "/" + flavor2))
-                self.dose = [0, 0.1, 0.2, 1., 2., 3., 5., 10., 20., 50., 100., 200., 300., 400., 500., 600.]
+                self.dose = [0, 0.1, 0.2, 0.5, 1., 2., 3., 5., 10., 20., 50., 100., 200., 300., 400., 500., 600., 700., 800.]
             else:
                 os.chdir(normpath(root_path + "/output/" + chip_id + "/" + flavor))
         else:
@@ -747,7 +759,7 @@ if __name__ == "__main__":
     chips = Chip_overview()
     chip_id = 'BN004'
     flavor2 = 'TID'
-    flavor = 'LineReg#'
-    specifics = '5'
+    flavor = 'LoadReg'
+    specifics = ''
     chips.create_iv_overview(chip_id, flavor, specifics, main=True)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
