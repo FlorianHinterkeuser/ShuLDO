@@ -10,7 +10,6 @@ from os.path import isfile, join, normpath, normcase
 import numpy as np
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
-import Analysis
 import math
 import yaml
 from matplotlib.pyplot import cm
@@ -92,11 +91,12 @@ class Chip_overview(object):
 
     def plot_iv_col2(self, filelist, name='V_in', data=None, chip='000', flavor='IV', specifics='', filename="file"):
         fig = plt.figure(1)
-        ax1 = fig.add_subplot(111)
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+
         scalex = 0.6
 
         legend_dict = {}
-        list_of_names = {'V_in': 1, 'V_out': 2, 'V_ref': 3, 'V_offs': 4, 'I_ref_sense': 5, 'V_out_pre': 6, 'NTC': 7}
         color = iter(cm.rainbow(np.linspace(0, 1, len(data.keys()))))
 
         for key in filelist:
@@ -112,7 +112,7 @@ class Chip_overview(object):
 
             for row in datas:
                 iin.append((row[0]))
-                vin.append(row[list_of_names[name]])
+                vin.append(row[self.list_of_names[name]['loc']])
 
             label = name + ' (' + str(self.dose[save_key]) + 'Mrad)'
 
@@ -130,8 +130,12 @@ class Chip_overview(object):
         else:
             ax1.set_xlabel("Input Current / A")
         ax1.set_ylabel("Voltage / V")
+        ax2.set_ylabel("Dose / MRad")
 
         ax1.axis([0, scalex, 0, 2.1])
+
+        cax = plt.axes([0.85, 0.1, 0.075, 0.8])
+        fig.colorbar(cax=cax)
 
         colors = legend_dict.values()
         labels = legend_dict.keys()
@@ -139,59 +143,22 @@ class Chip_overview(object):
 
         plt.legend(lines, labels, loc=2)
         plt.grid()
+
         logging.info("Saving plot %s" % filename)
+        filepath = self.filepath + '/' + flavor +'/Colored'
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
         try:
             plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '_' + name + '_Colored.pdf')
         except:
             logging.error("Plot %s could not be saved" % filename)
             raise ValueError
         logging.info("Finished.")
+        os.chdir(normpath(self.filepath))
+
         plt.close()
 
-    def plot_iv2(self, data = None, chip = '000', flavor = "IV2", specifics = '', filename = "file", fit_length = 50):
-        fig = plt.figure(1)
-        ax1 = fig.add_subplot(111)
-        ax1.axis([0,1.2,0,2.1])
-
-        for key in data.keys():
-            datas = data[key]['data']
-            iin, vin, vout, vrefpre, voutpre, vbandgap = [], [], [], [], [], []
-
-            logging.info("Plotting averaged values")
-            for row in datas:
-                iin.append((row[0]))
-                vin.append(row[1])
-                vout.append(row[2])
-                vrefpre.append(row[3])
-                voutpre.append(row[4])
-                vbandgap.append(row[5])
-
-            ax1.plot(iin, vin, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='red', label='Input Voltage')
-            ax1.plot(iin, voutpre, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='blue', label='Preregulator Output Voltage')
-            ax1.plot(iin, vbandgap, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='green', label='Bandgap Voltage')
-            ax1.plot(iin, vrefpre, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='olive', label='Preregulator Reference Voltage')
-            ax1.plot(iin, vout, linestyle='-', marker='.', linewidth= 0.1, markersize = '1', color='purple', label='Output Voltage')
-
-
-        ax1.set_xlabel("Input Current / A")
-        ax1.set_ylabel("Voltage / V")
-
-        legend_dict = { 'Input Voltage' : 'red', 'Prereg Output Voltage' : 'blue', 'Preregulator Reference Voltage' : 'olive', 'Output Voltage' : 'purple', 'Bandgap Voltage' : 'green'}
-        colors = legend_dict.values()
-        labels = legend_dict.keys()
-        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
-
-        plt.legend(lines, labels, loc = 2)
-        plt.grid()
-        logging.info("Saving plot %s" % filename)
-        try:
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.pdf')
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics +'.png')
-        except:
-            logging.error("Plot %s could not be saved" % filename)
-            raise ValueError
-        logging.info("Finished.")
-        plt.close()
 
     def plot_currentmirror(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = 50):
         fig = plt.figure(1)
@@ -428,19 +395,24 @@ class Chip_overview(object):
 
         plt.legend(lines, labels, loc=2)
         plt.grid()
+
         logging.info("Saving plot %s" % filename)
+        filepath = self.filepath + '/' + flavor
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
         try:
             plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.pdf')
             plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.png')
         except:
             logging.error("Plot %s could not be saved" % filename)
             raise ValueError
-        logging.info("Finished OVP_ref Plot.")
+        logging.info("Finished IV Plot.")
+        os.chdir(normpath(self.filepath))
         plt.close()
 
     def plot_iv_spread(self, chip = '000', specifics = ''):
         fit_log = yaml.load(open(self.name, 'r'))
-
         self.vin_effective_res = []
         self.voffs_slope = []
         self.vin_offset = []
@@ -476,51 +448,20 @@ class Chip_overview(object):
         plt.errorbar(x_axis_c, voffs_offset_s, None, x_err, marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='green', capsize= 2, markeredgewidth=1, label='Voffs fit offset')
         plt.errorbar(x_axis_c, voffs_mean_s, None, x_err, marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='black', capsize= 2, markeredgewidth=1, label='Mean Voffs')
         plt.semilogx()
+
         plt.legend()
         plt.grid()
         plt.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.5, 1.2])
+
+        filepath = self.filepath + '/' + flavor + '/Fits'
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
         plt.savefig("Regulator Spread_Chip" + chip[-3:] +"_"+ flavor + specifics + ".pdf")
+        os.chdir(normpath(self.filepath))
+
         plt.close()
         plt.figure()
-
-    def averaging(self, filelist):
-        raw_data, rows, cols = [], [], []
-        files = len(filelist)
-        for file in filelist:
-            filecontent = Analysis.file_to_array(file)
-            header = filecontent['header']
-            data = filecontent['data']
-            raw_data.append(data), rows.append(filecontent['rows']), cols.append(filecontent['cols'])
-        rows = min(rows)
-        cols = min(cols)
-            
-        data = np.empty(shape=(cols,rows,files))
-        interpreted_data_mean = np.empty(shape=(rows, cols))
-        interpreted_data_dev = np.empty_like(interpreted_data_mean)
-        
-        raw_data = np.asarray(raw_data)
-        for x in range(0, cols):
-            for y in range(0, rows):
-                for z in range(0, files):
-                    data[x][y][z] = raw_data[z][y][x]
-                    
-                interpreted_data_mean[y][x] = np.mean(data[x][y])
-                interpreted_data_dev[y][x] = np.std(data[x][y])
-    #            error = np.mean(data[x][y])*0.0125
-    #            interpreted_data_dev[y][x] = np.std(data[x][y]) + error
-        interpreted_data = np.array([interpreted_data_mean, interpreted_data_dev])
-    
-
-        with open('average.csv', 'w') as csvfile:
-            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
-            spamwriter.writerow(header)
-            for row in interpreted_data[0]:
-                spamwriter.writerow(row)
-        with open('average_dev.csv', 'w') as csvfile:
-            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
-            spamwriter.writerow(header)
-            for row in interpreted_data[1]:
-                spamwriter.writerow(row)
 
     def file_to_array(self, file):
         header = np.genfromtxt(file, dtype=None, delimiter = ',', max_rows = 1)
@@ -592,9 +533,9 @@ class Chip_overview(object):
             x_axis_c.append(self.dose[int(x_axis_s[i])])
             x_err.append(self.dose[int(x_axis_s[i])]*0.2)
 
-        label1 = str(name + ' slope')
-        label2 = str(name + ' mean')
-        label3 = str(name + ' offset')
+        label1 = str('slope')
+        label2 = str('mean')
+        label3 = str('offset')
         color1 = 'red'
         color2 = 'green'
         color3 = 'blue'
@@ -656,8 +597,13 @@ class Chip_overview(object):
 
         self.plot_from_fit_log(ax1, ax2, scale1, scale2, scale_x, name)
 
+        if flavor == 'LoadReg':
+            ax1.set_title('Fit to Load Regulation: ' + self.list_of_names[name]['title'])
+        else:
+            ax1.set_title('Fit to Line Regulation: ' + self.list_of_names[name]['title'])
+
         ax1.set_xlabel(flavor2 + ' / Mrad')
-        ax1.set_ylabel("Slope Voltage  / V/Mrad")
+        ax1.set_ylabel("Slope Voltage  / V/A")
         ax2.set_ylabel("Voltage / V")
         ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
         ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
@@ -668,7 +614,16 @@ class Chip_overview(object):
 
         plt.legend(lines, labels, loc=2)
         plt.grid()
+
+        filepath = self.filepath + '/' + flavor + '/Fits'
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
+
         plt.savefig(chip_id + "_" + flavor + "_Fit_" + name +".pdf")
+
+        os.chdir(normpath(self.filepath))
+
         plt.close()
 
     def sort_filelist(self, filelist):
@@ -821,7 +776,7 @@ if __name__ == "__main__":
     chips = Chip_overview()
     chip_id = 'BN004'
     flavor2 = 'TID'
-    flavor = 'LoadReg'
+    flavor = 'LineReg'
     specifics = ''
     chips.create_iv_overview(chip_id, flavor, specifics, main=True)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
