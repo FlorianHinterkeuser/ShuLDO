@@ -413,7 +413,7 @@ class Chip_overview(object):
         os.chdir(normpath(self.filepath))
         plt.close()
 
-    def plot_iv_spread(self, chip = '000', specifics = ''):
+    def plot_iv_spread(self, chip='000', specifics='', rel=False):
         fit_log = yaml.load(open(self.name, 'r'))
         self.vin_effective_res = []
         self.voffs_slope = []
@@ -555,7 +555,7 @@ class Chip_overview(object):
         self.fit_log[flavor]["run" + save_key][name]["offset"] = float(fit_res[1])
         self.fit_log[flavor]["run" + save_key][name]["slope"] = float(fit_res[0])
 
-    def plot_from_fit_log(self, ax1, ax2, scale1, scale2, scale_x, name):
+    def plot_from_fit_log(self, ax1, ax2, scale1, scale2, scale_x, name, rel = False):
         fit_log = yaml.load(open(self.name, 'r'))
         p_slope, p_mean, p_offs, x_axis, x_axis_c = [], [], [], [], []
         x_err = []
@@ -577,6 +577,11 @@ class Chip_overview(object):
             x_axis_c.append(self.dose[int(x_axis_s[i])])
             x_err.append(self.dose[int(x_axis_s[i])]*0.2)
 
+        if rel:
+            p_slope_s = p_slope_s / p_slope_s[0]
+            p_mean_s = p_mean_s / p_mean_s[0]
+            p_offs_s = p_offs_s / p_offs_s[0]
+
         label1 = str('slope')
         label2 = str('mean')
         label3 = str('offset')
@@ -593,27 +598,27 @@ class Chip_overview(object):
         self.legend_dict[label3] = color3
 
 
-        new_min = (min(p_slope) - 0.01)
+        new_min = (min(p_slope_s) - 0.01)
         if new_min < scale1[0]:
             scale1[0] = new_min
 
-        new_max = (max(p_slope) + 0.01)
+        new_max = (max(p_slope_s) + 0.01)
         if new_max > scale1[1]:
             scale1[1] = new_max
 
-        new_min = (min(p_offs) - min(p_offs) * 0.1)
+        new_min = (min(p_offs_s) - min(p_offs) * 0.1)
         if new_min < scale2[0]:
             scale2[0] = new_min
 
-        new_max = (max(p_offs) + max(p_offs) * 0.1)
+        new_max = (max(p_offs_s) + max(p_offs) * 0.1)
         if new_max > scale2[1]:
             scale2[1] = new_max
 
-        new_min = (min(p_mean) - min(p_mean) * 0.1)
+        new_min = (min(p_mean_s) - min(p_mean) * 0.1)
         if new_min < scale2[0]:
             scale2[0] = new_min
 
-        new_max = (max(p_mean) + max(p_mean) * 0.1)
+        new_max = (max(p_mean_s) + max(p_mean) * 0.1)
         if new_max > scale2[1]:
             scale2[1] = new_max
 
@@ -642,12 +647,13 @@ class Chip_overview(object):
         self.plot_from_fit_log(ax1, ax2, scale1, scale2, scale_x, name)
 
         if flavor == 'LoadReg':
-            ax1.set_title('Fit to Load Regulation: ' + self.list_of_names[name]['title'])
+                ax1.set_title('Fit to Load Regulation: ' + self.list_of_names[name]['title'])
         else:
-            ax1.set_title('Fit to Line Regulation: ' + self.list_of_names[name]['title'])
+                ax1.set_title('Fit to Line Regulation: ' + self.list_of_names[name]['title'])
 
         ax1.set_xlabel(flavor2 + ' / Mrad')
-        ax1.set_ylabel("Slope Voltage  / V/A")
+
+        ax1.set_ylabel("Slope  / V/A")
         ax2.set_ylabel("Voltage / V")
         ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
         ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
@@ -665,6 +671,53 @@ class Chip_overview(object):
         os.chdir(normpath(filepath))
 
         plt.savefig(chip_id + "_" + flavor + "_Fit_" + name +".pdf")
+
+        os.chdir(normpath(self.filepath))
+
+        plt.close()
+
+    def create_plot_rel(self, name, chip_id):
+        try:
+            self.name
+        except:
+            self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
+
+        fig = plt.figure(1)
+        ax1 = fig.add_subplot(111)
+        ax2 = ax1.twinx()
+        scale_x = [1.0, 2.0]
+        scale1 = [1., 1.]
+        scale2 = [0.5, 0.]
+
+        self.legend_dict = {}
+
+        self.plot_from_fit_log(ax2, ax1, scale2, scale1, scale_x, name, rel=True)
+
+        if flavor == 'LoadReg':
+                ax1.set_title('Relative Fit to Load Regulation: ' + self.list_of_names[name]['title'])
+        else:
+                ax1.set_title('Relative Fit to Line Regulation: ' + self.list_of_names[name]['title'])
+
+        ax1.set_xlabel(flavor2 + ' / Mrad')
+
+        ax1.set_ylabel("V/V(0)")
+        ax2.set_ylabel("Slope/Slope(0)")
+        ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
+        ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
+
+        colors = self.legend_dict.values()
+        labels = self.legend_dict.keys()
+        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+
+        plt.legend(lines, labels, loc=2)
+        ax1.grid()
+
+        filepath = self.filepath + '/' + flavor + '/Fits'
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
+
+        plt.savefig(chip_id + "_" + flavor + "_Fit_relative_" + name +".pdf")
 
         os.chdir(normpath(self.filepath))
 
@@ -772,10 +825,15 @@ class Chip_overview(object):
             self.dump_plotdata()
 
             self.create_plot('V_out', chip_id)
+            self.create_plot_rel('V_out', chip_id)
             self.create_plot('V_outpre', chip_id)
+            self.create_plot_rel('V_outpre', chip_id)
             self.create_plot('V_ref', chip_id)
+            self.create_plot_rel('V_ref', chip_id)
             self.create_plot('I_ref', chip_id)
+            self.create_plot_rel('I_ref', chip_id)
             self.create_plot('Offs', chip_id)
+            self.create_plot_rel('Offs', chip_id)
 
             self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor,
                               specifics=specifics)
@@ -792,17 +850,21 @@ class Chip_overview(object):
 
 
         else:
-            #self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
             #self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics)
             self.dump_plotdata()
 
             self.plot_iv_spread(chip=chip_id, specifics=specifics)
+            self.plot_iv_spread(chip=chip_id, specifics=specifics, rel=True)
             self.create_plot('V_out', chip_id)
+            self.create_plot_rel('V_out', chip_id)
             self.create_plot('V_outpre', chip_id)
+            self.create_plot_rel('V_outpre', chip_id)
             self.create_plot('V_ref', chip_id)
+            self.create_plot_rel('V_ref', chip_id)
             self.create_plot('I_ref', chip_id)
-
+            self.create_plot_rel('I_ref', chip_id)
+#
             self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
             self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
                               specifics=specifics)
