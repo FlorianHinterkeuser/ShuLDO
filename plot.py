@@ -425,6 +425,12 @@ class Chip_overview(object):
         x_axis_c = []
         x_err = []
 
+        fig = plt.figure(1)
+        ax1 = fig.add_subplot(111)
+        ax2 = ax1.twinx()
+
+        legend_dict = {}
+
         for runs in fit_log[flavor]:
             runs_save = runs[3:]
             y_axis.append(int(runs_save))
@@ -445,21 +451,57 @@ class Chip_overview(object):
             x_axis_c.append(self.dose[int(x_axis_s[i])])
             x_err.append(self.dose[int(x_axis_s[i])]*0.2)
 
-        plt.errorbar(x_axis_c, vin_effective_res_s, None, x_err, marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='red', capsize= 2, markeredgewidth=1, label='Effective Input Resistances')
-        plt.errorbar(x_axis_c, vin_offset_s, None, x_err,  marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='blue', capsize= 2, markeredgewidth=1, label='Offset from Vin')
-        plt.errorbar(x_axis_c, voffs_offset_s, None, x_err, marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='green', capsize= 2, markeredgewidth=1, label='Voffs fit offset')
-        plt.errorbar(x_axis_c, voffs_mean_s, None, x_err, marker='.', fmt='o', linewidth= 0.3, markersize = '3', color='black', capsize= 2, markeredgewidth=1, label='Mean Voffs')
-        plt.semilogx()
+        if rel:
+            vin_effective_res_s = vin_effective_res_s / vin_effective_res_s[0]
+            vin_offset_s = vin_offset_s / vin_offset_s[0]
+            voffs_offset_s = voffs_offset_s / voffs_offset_s[0]
+            voffs_mean_s = voffs_mean_s / voffs_mean_s[0]
 
-        plt.legend()
+        ax2.errorbar(x_axis_c, vin_effective_res_s, None, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='red', capsize=2, markeredgewidth=1, label='Effective Input Resistance')
+        legend_dict['Effective Input Resistance'] = 'red'
+        ax1.errorbar(x_axis_c, vin_offset_s, None, x_err,  marker='.', fmt='o', linewidth=0.3, markersize='3', color='blue', capsize=2, markeredgewidth=1, label='Offset from Vin')
+        legend_dict['Offset Voltage from Fit to Input Voltage'] = 'blue'
+        ax1.errorbar(x_axis_c, voffs_offset_s, None, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='green', capsize=2, markeredgewidth=1, label='Voffs fit offset')
+        legend_dict['Offset Voltage from Fit'] = 'green'
+        ax1.errorbar(x_axis_c, voffs_mean_s, None, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='black', capsize=2, markeredgewidth=1, label='Mean Voffs')
+        legend_dict['Mean Offset Voltage'] = 'black'
+        ax1.semilogx()
+
+        if rel:
+            ax1.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.9, 1.1])
+            ax2.axis([min(x_axis_c) - min(x_axis_c) * 0.25, max(x_axis_c) + max(x_axis_c) * 0.25, 0.9, 1.1])
+        else:
+            ax1.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.5, 1.2])
+            ax2.axis([min(x_axis_c) - min(x_axis_c) * 0.25, max(x_axis_c) + max(x_axis_c) * 0.25, 0.5, 1.2])
+
+        ax1.set_xlabel("TID / Mrad")
+
+        if rel:
+            ax1.set_ylabel("Voltage / Voltage(0)")
+            ax2.set_ylabel("Resistance / Resistance(0)")
+
+            ax1.set_title('Relative Regulator Spread form Line Regulation')
+        else:
+            ax1.set_ylabel("Voltage / V")
+            ax2.set_ylabel("Resistance / Ω")
+
+            ax1.set_title('Regulator Spread form Line Regulation')
+
+        colors = legend_dict.values()
+        labels = legend_dict.keys()
+        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+
+        plt.legend(lines, labels, loc=3)
         plt.grid()
-        plt.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.5, 1.2])
 
         filepath = self.filepath + '/' + flavor + '/Fits'
         if not os.path.exists(os.path.normpath(filepath)):
             os.makedirs(os.path.normpath(filepath))
         os.chdir(normpath(filepath))
-        plt.savefig("Regulator Spread_Chip" + chip[-3:] +"_"+ flavor + specifics + ".pdf")
+        if rel:
+            plt.savefig("Relative_Regulator_Spread_Chip" + chip[-3:] + "_" + flavor + ".pdf")
+        else:
+            plt.savefig("Regulator Spread_Chip" + chip[-3:] + "_" + flavor + ".pdf")
         os.chdir(normpath(self.filepath))
 
         plt.close()
