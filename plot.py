@@ -17,6 +17,199 @@ import matplotlib.colors as mplcolor
 from matplotlib.collections import LineCollection
 
 class Chip_overview(object):
+    def plot_ntc(self, data=None, chip='000', specifics='', filename="file", fit_length=[25, 45]):
+        fig = plt.figure(1)
+        ax1 = fig.add_subplot(111)
+        ax2 = ax1.twinx()
+        scale2 = [0, 40]
+        scalex = 0
+        ntc1_exists = False
+        ntc2_exists = False
+        ntc3_exists = False
+        legend_dict = {}
+
+        for key in data.keys():
+            save_k = key.split('_')
+            save_key = save_k[0]
+            self.scan_parameter.append(float(save_key))
+            datas = data[key]['data']
+            iin, vin, vext, vout, vref, voffs, iref, voutpre = [], [], [], [], [], [], [], []
+            diin, dvin, dvext, dvout, dvref, dvoffs, diref, dvoutpre = [], [], [], [], [], [], [], []
+            diinl, dvinl, dvextl, dvoutl, dvrefl, dvoffsl, direfl, dvoutprel = [], [], [], [], [], [], [], []
+            diinh, dvinh, dvexth, dvouth, dvrefh, dvoffsh, direfh, dvoutpreh = [], [], [], [], [], [], [], []
+
+            for row in datas:
+                if row[0] > 1.2:
+                    break
+                iin.append((row[0]))
+                diin.append((row[8]))
+                vin.append(row[1])
+                dvin.append((row[9]))
+                vout.append(row[2])
+                dvout.append(row[10])
+                vref.append(row[3])
+                dvref.append(row[11])
+                voffs.append(row[4])
+                dvoffs.append(row[12])
+                iref.append(row[5])
+                diref.append(row[13])
+                voutpre.append(row[6])
+                dvoutpre.append(row[14])
+                #                vext.append(1.0/row[5])
+                vext.append(1 / (1. / 298.15 + 1. / 3435. * math.log(row[7] / 10000.)) - 273.15)
+            if specifics != '':
+                for i in range(len(dvin)):
+                    dvinl.append(vin[i] - dvin[i])
+                    dvinh.append(vin[i] + dvin[i])
+
+                    dvoutl.append(vout[i] - dvout[i])
+                    dvouth.append(vout[i] + dvout[i])
+
+                    dvrefl.append(vref[i] - dvref[i])
+                    dvrefh.append(vref[i] + dvref[i])
+
+                    dvoffsl.append(voffs[i] - dvoffs[i])
+                    dvoffsh.append(voffs[i] + dvoffs[i])
+
+                    direfl.append(voffs[i] - diref[i])
+                    direfh.append(voffs[i] + diref[i])
+
+                    dvoutprel.append(voutpre[i] - dvoutpre[i])
+                    dvoutpreh.append(voutpre[i] + dvoutpre[i])
+
+            ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='red',
+                     label='Input Voltage')
+            legend_dict['Input Voltage'] = 'red'
+            if specifics != '':
+                ax1.fill_between(iin, dvinl, dvinh, facecolors='tomato')
+
+            ax1.plot(iin, vout, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='purple',
+                     label='Output Voltage')
+            legend_dict['Output Voltage'] = 'purple'
+            if specifics != '':
+                ax1.fill_between(iin, dvoutl, dvouth, facecolors='magenta')
+
+            ax2.plot(iin, vext, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='black',
+                     label='NTC')
+            legend_dict['NTC'] = 'black'
+
+            min_ntc = min(vext) - 5
+            max_ntc = max(vext) + 5
+            if scale2[0] > min_ntc:
+                scale2[0] = min_ntc
+            if scale2[1] < max_ntc:
+                scale2[1] = max_ntc
+
+            max_x = max(iin) + 0.05
+            if scalex < max_x:
+                scalex = max_x
+
+            # if 'NTC1' in key:
+            ntc1_exists = True
+            ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='blue',
+                     label='Offset Voltage')
+            legend_dict['Offset Voltage'] = 'blue'
+            if specifics != '':
+                ax1.fill_between(iin, dvoffsl, dvoffsh, facecolors='lightblue')
+
+            ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='olive',
+                     label='Reference Voltage')
+            legend_dict['Reference Voltage'] = 'olive'
+            if specifics != '':
+                ax1.fill_between(iin, dvrefl, dvrefh, facecolors='yellowgreen')
+            # elif 'NTC2' in key:
+            #    ntc2_exists = True
+            #    ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='green',
+            #             label='R_ext Voltage')
+            #    legend_dict['R_ext Voltage'] = 'green'
+            #    if specifics != '':
+            #       ax1.fill_between(iin, dvoffsl, dvoffsh, facecolors='lightgreen')
+            #
+            #    ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='orange',
+            #             label='Bandgap Voltage')
+            #    legend_dict['Bandgap Voltage'] = 'orange'
+            #    if specifics != '':
+            #       ax1.fill_between(iin, dvrefl, dvrefh, facecolors='navajowhite')
+            #
+            # elif 'NTC3' in key:
+            ntc3_exists = True
+            ax1.plot(iin, voutpre, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='yellow',
+                     label='Prereg Output Voltage')
+            legend_dict['Prereg Output Voltage'] = 'yellow'
+            if specifics != '':
+                ax1.fill_between(iin, dvoutprel, dvoutpreh, facecolors='lightyellow')
+
+            ax1.plot(iin, iref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
+                     label='Reference Current')
+            legend_dict['Reference Current Sense'] = 'brown'
+            if specifics != '':
+                ax1.fill_between(iin, direfl, direfh, facecolors='indianred')
+
+            # Fits to determine R_eff and Offs
+            x = np.polyfit(iin[fit_length[0]:fit_length[1]], vin[fit_length[0]:fit_length[1]], 1)
+            y = np.polyfit(iin[fit_length[0]:fit_length[1]], voffs[fit_length[0]:fit_length[1]], 1)
+
+            self.fit_to_data(iin, vout, save_key, 'V_out', fit_length)
+            self.fit_to_data(iin, voutpre, save_key, 'V_outpre', fit_length)
+            self.fit_to_data(iin, iref, save_key, 'I_ref', fit_length)
+            self.fit_to_data(iin, vref, save_key, 'V_ref', fit_length)
+
+            offset_mean = np.mean(voffs[fit_length[0]:])
+
+            try:
+                self.fit_log[flavor]
+            except:
+                self.fit_log[flavor] = {}
+
+            try:
+                self.fit_log[flavor]["run" + save_key]
+            except:
+                self.fit_log[flavor]["run" + save_key] = {}
+
+            try:
+                self.fit_log[flavor]["run" + save_key]["Offs"]
+            except:
+                self.fit_log[flavor]["run" + save_key]["Offs"] = {}
+
+            self.fit_log[flavor]["run" + save_key]["R_eff"] = float(x[0])
+            self.fit_log[flavor]["run" + save_key]["Offs"]["eff"] = float(x[1])
+            self.fit_log[flavor]["run" + save_key]["Offs"]["mean"] = float(offset_mean)
+            self.fit_log[flavor]["run" + save_key]["Offs"]["offset"] = float(y[1])
+            self.fit_log[flavor]["run" + save_key]["Offs"]["slope"] = float(y[0])
+
+        ax2.axis([0.1, scalex, scale2[0], scale2[1]])
+
+        if flavor == 'LoadReg':
+            ax1.set_xlabel("Load Current / A")
+        else:
+            ax1.set_xlabel("Input Current / A")
+
+        ax1.set_ylabel("Voltage / V")
+        ax2.set_ylabel("NTC Temperature")
+
+        colors = legend_dict.values()
+        labels = legend_dict.keys()
+        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+
+        plt.legend(lines, labels, loc=2)
+        plt.grid()
+
+        logging.info("Saving plot %s" % filename)
+        filepath = self.filepath + '/' + flavor
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
+        try:
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.pdf')
+            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.png')
+        except:
+            logging.error("Plot %s could not be saved" % filename)
+            raise ValueError
+        logging.info("Finished IV Plot.")
+        os.chdir(normpath(self.filepath))
+        plt.close()
+
+
     def plot_iv_col(self, filelist, name='V_in', data=None, chip='000', flavor='IV', specifics='', filename="file", log = True):
         scalex = 0.6
         iin_a = []
@@ -221,197 +414,6 @@ class Chip_overview(object):
         logging.info("Finished CurrentMirror Plot.")
         plt.close()
 
-    def plot_ntc(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = [25, 45]):
-        fig = plt.figure(1)
-        ax1 = fig.add_subplot(111)
-        ax2 = ax1.twinx()
-        scale2 = [0, 40]
-        scalex = 0
-        ntc1_exists = False
-        ntc2_exists = False
-        ntc3_exists = False
-        legend_dict = {}
-
-        for key in data.keys():
-            save_k = key.split('_')
-            save_key = save_k[0]
-            self.scan_parameter.append(float(save_key))
-            datas = data[key]['data']
-            iin, vin, vext, vout, vref, voffs, iref, voutpre = [], [], [], [], [], [], [], []
-            diin, dvin, dvext, dvout, dvref, dvoffs, diref, dvoutpre = [], [], [], [], [], [], [], []
-            diinl, dvinl, dvextl, dvoutl, dvrefl, dvoffsl, direfl, dvoutprel = [], [], [], [], [], [], [], []
-            diinh, dvinh, dvexth, dvouth, dvrefh, dvoffsh, direfh, dvoutpreh = [], [], [], [], [], [], [], []
-
-            for row in datas:
-                if row[0] > 1.2:
-                    break
-                iin.append((row[0]))
-                diin.append((row[8]))
-                vin.append(row[1])
-                dvin.append((row[9]))
-                vout.append(row[2])
-                dvout.append(row[10])
-                vref.append(row[3])
-                dvref.append(row[11])
-                voffs.append(row[4])
-                dvoffs.append(row[12])
-                iref.append(row[5])
-                diref.append(row[13])
-                voutpre.append(row[6])
-                dvoutpre.append(row[14])
-#                vext.append(1.0/row[5])
-                vext.append(1/(1./298.15 + 1./3435. * math.log(row[7]/10000.))-273.15)
-            if specifics != '':
-                for i in range(len(dvin)):
-                    dvinl.append(vin[i] - dvin[i])
-                    dvinh.append(vin[i] + dvin[i])
-
-                    dvoutl.append(vout[i]-dvout[i])
-                    dvouth.append(vout[i]+dvout[i])
-
-                    dvrefl.append(vref[i]-dvref[i])
-                    dvrefh.append(vref[i]+dvref[i])
-
-                    dvoffsl.append(voffs[i]-dvoffs[i])
-                    dvoffsh.append(voffs[i]+dvoffs[i])
-
-                    direfl.append(voffs[i] - diref[i])
-                    direfh.append(voffs[i] + diref[i])
-
-                    dvoutprel.append(voutpre[i] - dvoutpre[i])
-                    dvoutpreh.append(voutpre[i] + dvoutpre[i])
-
-            ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='red',
-                     label='Input Voltage')
-            legend_dict['Input Voltage'] = 'red'
-            if specifics != '':
-                ax1.fill_between(iin, dvinl, dvinh, facecolors='tomato')
-
-            ax1.plot(iin, vout, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='purple',
-                     label='Output Voltage')
-            legend_dict['Output Voltage'] = 'purple'
-            if specifics != '':
-                ax1.fill_between(iin, dvoutl, dvouth, facecolors='magenta')
-
-            ax2.plot(iin, vext, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='black',
-                     label='NTC')
-            legend_dict['NTC'] = 'black'
-
-            min_ntc = min(vext) - 5
-            max_ntc = max(vext) + 5
-            if scale2[0] > min_ntc:
-                scale2[0] = min_ntc
-            if scale2[1] < max_ntc:
-                scale2[1] = max_ntc
-
-            max_x = max(iin) + 0.05
-            if scalex < max_x:
-                scalex = max_x
-
-            #if 'NTC1' in key:
-            ntc1_exists = True
-            ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='blue',
-                 label='Offset Voltage')
-            legend_dict['Offset Voltage'] = 'blue'
-            if specifics != '':
-                ax1.fill_between(iin, dvoffsl, dvoffsh, facecolors='lightblue')
-
-            ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='olive',
-                 label='Reference Voltage')
-            legend_dict['Reference Voltage'] = 'olive'
-            if specifics != '':
-                ax1.fill_between(iin, dvrefl, dvrefh, facecolors='yellowgreen')
-            #elif 'NTC2' in key:
-            #    ntc2_exists = True
-            #    ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='green',
-            #             label='R_ext Voltage')
-            #    legend_dict['R_ext Voltage'] = 'green'
-            #    if specifics != '':
-            #       ax1.fill_between(iin, dvoffsl, dvoffsh, facecolors='lightgreen')
-            #
-            #    ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='orange',
-            #             label='Bandgap Voltage')
-            #    legend_dict['Bandgap Voltage'] = 'orange'
-            #    if specifics != '':
-            #       ax1.fill_between(iin, dvrefl, dvrefh, facecolors='navajowhite')
-            #
-            #elif 'NTC3' in key:
-            ntc3_exists = True
-            ax1.plot(iin, voutpre, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='yellow',
-                     label='Prereg Output Voltage')
-            legend_dict['Prereg Output Voltage'] = 'yellow'
-            if specifics != '':
-                ax1.fill_between(iin, dvoutprel, dvoutpreh, facecolors='lightyellow')
-
-            ax1.plot(iin, iref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
-                     label='Reference Current')
-            legend_dict['Reference Current Sense'] = 'brown'
-            if specifics != '':
-                ax1.fill_between(iin, direfl, direfh, facecolors='indianred')
-
-            #Fits to determine R_eff and Offs
-            x = np.polyfit(iin[fit_length[0]:fit_length[1]], vin[fit_length[0]:fit_length[1]], 1)
-            y = np.polyfit(iin[fit_length[0]:fit_length[1]], voffs[fit_length[0]:fit_length[1]], 1)
-
-            self.fit_to_data(iin, vout, save_key, 'V_out', fit_length)
-            self.fit_to_data(iin, voutpre, save_key, 'V_outpre', fit_length)
-            self.fit_to_data(iin, iref, save_key, 'I_ref', fit_length)
-            self.fit_to_data(iin, vref, save_key, 'V_ref', fit_length)
-
-            offset_mean = np.mean(voffs[fit_length[0]:])
-
-            try:
-                self.fit_log[flavor]
-            except:
-                self.fit_log[flavor] = {}
-
-            try:
-                self.fit_log[flavor]["run" + save_key]
-            except:
-                self.fit_log[flavor]["run" + save_key] = {}
-
-            try:
-                self.fit_log[flavor]["run" + save_key]["Offs"]
-            except:
-                self.fit_log[flavor]["run" + save_key]["Offs"] = {}
-
-            self.fit_log[flavor]["run" + save_key]["R_eff"] = float(x[0])
-            self.fit_log[flavor]["run" + save_key]["Offs"]["eff"] = float(x[1])
-            self.fit_log[flavor]["run" + save_key]["Offs"]["mean"] = float(offset_mean)
-            self.fit_log[flavor]["run" + save_key]["Offs"]["offset"] = float(y[1])
-            self.fit_log[flavor]["run" + save_key]["Offs"]["slope"] = float(y[0])
-
-        ax2.axis([0.1, scalex, scale2[0], scale2[1]])
-
-        if flavor == 'LoadReg':
-            ax1.set_xlabel("Load Current / A")
-        else:
-            ax1.set_xlabel("Input Current / A")
-
-        ax1.set_ylabel("Voltage / V")
-        ax2.set_ylabel("NTC Temperature")
-
-        colors = legend_dict.values()
-        labels = legend_dict.keys()
-        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
-
-        plt.legend(lines, labels, loc=2)
-        plt.grid()
-
-        logging.info("Saving plot %s" % filename)
-        filepath = self.filepath + '/' + flavor
-        if not os.path.exists(os.path.normpath(filepath)):
-            os.makedirs(os.path.normpath(filepath))
-        os.chdir(normpath(filepath))
-        try:
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.pdf')
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '.png')
-        except:
-            logging.error("Plot %s could not be saved" % filename)
-            raise ValueError
-        logging.info("Finished IV Plot.")
-        os.chdir(normpath(self.filepath))
-        plt.close()
 
     def plot_iv_spread(self, chip='000', specifics='', rel=False):
         fit_log = yaml.load(open(self.name, 'r'))
@@ -507,53 +509,101 @@ class Chip_overview(object):
         plt.close()
         plt.figure()
 
-    def file_to_array(self, file):
-        header = np.genfromtxt(file, dtype=None, delimiter = ',', max_rows = 1)
-        data = np.genfromtxt(file, float, delimiter=',', skip_header=1)
-        rows = len(data)
-        cols = len(data[0])
-        return {'header': header, 'data': data, 'rows' : rows, 'cols' : cols}
 
-    def dump_plotdata(self):
-        log = open(self.name, 'w+')
-        yaml.dump(self.fit_log, log)
-        log.close()
+    def create_plot(self, name, chip_id):
+        try:
+            self.name
+        except:
+            self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
 
-    def create_fit_log(self, chip_id):
-        self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
-        if os.path.isfile(self.name):
-            log = open(self.name, 'r')
-            self.fit_log = yaml.load(log)
-            log.close()
-        else:
-            self.fit_log = {}
+        fig = plt.figure(1)
+        ax1 = fig.add_subplot(111)
+        ax2 = ax1.twinx()
+        scale_x = [1.0, 2.0]
+        scale1 = [0.1, 0.01]
+        scale2 = [0.5, 0.]
+        self.legend_dict = {}
 
-    def fit_to_data(self, x, y, save_key, name, fit_length):
+        self.plot_from_fit_log(ax1, ax2, scale1, scale2, scale_x, name)
+
         if flavor == 'LoadReg':
-            fit_res = np.polyfit(x[fit_length[0]:fit_length[1]], y[fit_length[0]:fit_length[1]], 1)
-            fit_mean = np.mean(y[fit_length[0]:fit_length[1]])
+            ax1.set_title('Fit to Load Regulation: ' + self.list_of_names[name]['title'])
         else:
-            fit_res = np.polyfit(x[fit_length[0]:], y[fit_length[0]:], 1)
-            fit_mean = np.mean(y[fit_length[0]:])
+            ax1.set_title('Fit to Line Regulation: ' + self.list_of_names[name]['title'])
 
+        ax1.set_xlabel(flavor2 + ' / Mrad')
+
+        ax1.set_ylabel("Slope  / V/A")
+        ax2.set_ylabel("Voltage / V")
+        ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
+        ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
+
+        colors = self.legend_dict.values()
+        labels = self.legend_dict.keys()
+        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+
+        plt.legend(lines, labels, loc=2)
+        plt.grid()
+
+        filepath = self.filepath + '/' + flavor + '/Fits'
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
+
+        plt.savefig(chip_id + "_" + flavor + "_Fit_" + name +".pdf")
+
+        os.chdir(normpath(self.filepath))
+
+        plt.close()
+
+
+    def create_plot_rel(self, name, chip_id):
         try:
-            self.fit_log[flavor]
+            self.name
         except:
-            self.fit_log[flavor] = {}
+            self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
 
-        try:
-            self.fit_log[flavor]["run" + save_key]
-        except:
-            self.fit_log[flavor]["run" + save_key] = {}
+        fig = plt.figure(1)
+        ax1 = fig.add_subplot(111)
+        ax2 = ax1.twinx()
+        scale_x = [1.0, 2.0]
+        scale1 = [1., 1.]
+        scale2 = [0.5, 0.]
 
-        try:
-            self.fit_log[flavor]["run" + save_key][name]
-        except:
-            self.fit_log[flavor]["run" + save_key][name] = {}
+        self.legend_dict = {}
 
-        self.fit_log[flavor]["run" + save_key][name]["mean"] = float(fit_mean)
-        self.fit_log[flavor]["run" + save_key][name]["offset"] = float(fit_res[1])
-        self.fit_log[flavor]["run" + save_key][name]["slope"] = float(fit_res[0])
+        self.plot_from_fit_log(ax2, ax1, scale2, scale1, scale_x, name, rel=True)
+
+        if flavor == 'LoadReg':
+                ax1.set_title('Relative Fit to Load Regulation: ' + self.list_of_names[name]['title'])
+        else:
+                ax1.set_title('Relative Fit to Line Regulation: ' + self.list_of_names[name]['title'])
+
+        ax1.set_xlabel(flavor2 + ' / Mrad')
+
+        ax1.set_ylabel("V/V(0)")
+        ax2.set_ylabel("Slope/Slope(0)")
+        ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
+        ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
+
+        colors = self.legend_dict.values()
+        labels = self.legend_dict.keys()
+        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+
+        plt.legend(lines, labels, loc=2)
+        ax1.grid()
+
+        filepath = self.filepath + '/' + flavor + '/Fits'
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
+
+        plt.savefig(chip_id + "_" + flavor + "_Fit_relative_" + name +".pdf")
+
+        os.chdir(normpath(self.filepath))
+
+        plt.close()
+
 
     def plot_from_fit_log(self, ax1, ax2, scale1, scale2, scale_x, name, rel = False):
         fit_log = yaml.load(open(self.name, 'r'))
@@ -630,98 +680,58 @@ class Chip_overview(object):
         if new_max > scale2[1]:
             scale_x[1] = new_max
 
-    def create_plot(self, name, chip_id):
-        try:
-            self.name
-        except:
-            self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
 
-        fig = plt.figure(1)
-        ax1 = fig.add_subplot(111)
-        ax2 = ax1.twinx()
-        scale_x = [1.0, 2.0]
-        scale1 = [0.1, 0.01]
-        scale2 = [0.5, 0.]
-        self.legend_dict = {}
-
-        self.plot_from_fit_log(ax1, ax2, scale1, scale2, scale_x, name)
-
+    def fit_to_data(self, x, y, save_key, name, fit_length):
         if flavor == 'LoadReg':
-                ax1.set_title('Fit to Load Regulation: ' + self.list_of_names[name]['title'])
+            fit_res = np.polyfit(x[fit_length[0]:fit_length[1]], y[fit_length[0]:fit_length[1]], 1)
+            fit_mean = np.mean(y[fit_length[0]:fit_length[1]])
         else:
-                ax1.set_title('Fit to Line Regulation: ' + self.list_of_names[name]['title'])
+            fit_res = np.polyfit(x[fit_length[0]:], y[fit_length[0]:], 1)
+            fit_mean = np.mean(y[fit_length[0]:])
 
-        ax1.set_xlabel(flavor2 + ' / Mrad')
-
-        ax1.set_ylabel("Slope  / V/A")
-        ax2.set_ylabel("Voltage / V")
-        ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
-        ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
-
-        colors = self.legend_dict.values()
-        labels = self.legend_dict.keys()
-        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
-
-        plt.legend(lines, labels, loc=2)
-        plt.grid()
-
-        filepath = self.filepath + '/' + flavor + '/Fits'
-        if not os.path.exists(os.path.normpath(filepath)):
-            os.makedirs(os.path.normpath(filepath))
-        os.chdir(normpath(filepath))
-
-        plt.savefig(chip_id + "_" + flavor + "_Fit_" + name +".pdf")
-
-        os.chdir(normpath(self.filepath))
-
-        plt.close()
-
-    def create_plot_rel(self, name, chip_id):
         try:
-            self.name
+            self.fit_log[flavor]
         except:
-            self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
+            self.fit_log[flavor] = {}
 
-        fig = plt.figure(1)
-        ax1 = fig.add_subplot(111)
-        ax2 = ax1.twinx()
-        scale_x = [1.0, 2.0]
-        scale1 = [1., 1.]
-        scale2 = [0.5, 0.]
+        try:
+            self.fit_log[flavor]["run" + save_key]
+        except:
+            self.fit_log[flavor]["run" + save_key] = {}
 
-        self.legend_dict = {}
+        try:
+            self.fit_log[flavor]["run" + save_key][name]
+        except:
+            self.fit_log[flavor]["run" + save_key][name] = {}
 
-        self.plot_from_fit_log(ax2, ax1, scale2, scale1, scale_x, name, rel=True)
+        self.fit_log[flavor]["run" + save_key][name]["mean"] = float(fit_mean)
+        self.fit_log[flavor]["run" + save_key][name]["offset"] = float(fit_res[1])
+        self.fit_log[flavor]["run" + save_key][name]["slope"] = float(fit_res[0])
 
-        if flavor == 'LoadReg':
-                ax1.set_title('Relative Fit to Load Regulation: ' + self.list_of_names[name]['title'])
+
+    def file_to_array(self, file):
+        header = np.genfromtxt(file, dtype=None, delimiter = ',', max_rows = 1)
+        data = np.genfromtxt(file, float, delimiter=',', skip_header=1)
+        rows = len(data)
+        cols = len(data[0])
+        return {'header': header, 'data': data, 'rows' : rows, 'cols' : cols}
+
+
+    def dump_plotdata(self):
+        log = open(self.name, 'w+')
+        yaml.dump(self.fit_log, log)
+        log.close()
+
+
+    def create_fit_log(self, chip_id):
+        self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
+        if os.path.isfile(self.name):
+            log = open(self.name, 'r')
+            self.fit_log = yaml.load(log)
+            log.close()
         else:
-                ax1.set_title('Relative Fit to Line Regulation: ' + self.list_of_names[name]['title'])
+            self.fit_log = {}
 
-        ax1.set_xlabel(flavor2 + ' / Mrad')
-
-        ax1.set_ylabel("V/V(0)")
-        ax2.set_ylabel("Slope/Slope(0)")
-        ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
-        ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
-
-        colors = self.legend_dict.values()
-        labels = self.legend_dict.keys()
-        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
-
-        plt.legend(lines, labels, loc=2)
-        ax1.grid()
-
-        filepath = self.filepath + '/' + flavor + '/Fits'
-        if not os.path.exists(os.path.normpath(filepath)):
-            os.makedirs(os.path.normpath(filepath))
-        os.chdir(normpath(filepath))
-
-        plt.savefig(chip_id + "_" + flavor + "_Fit_relative_" + name +".pdf")
-
-        os.chdir(normpath(self.filepath))
-
-        plt.close()
 
     def sort_filelist(self, filelist):
         fl = []
@@ -773,6 +783,7 @@ class Chip_overview(object):
         ax.add_collection(lc)
         ax.autoscale()
         return lc
+
 
     def create_iv_overview(self, chip_id, flavor, specifics, main=False, **kwargs):
         self.mirror = []
