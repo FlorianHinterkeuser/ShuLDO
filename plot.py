@@ -243,6 +243,8 @@ class Chip_overview(object):
             diinh, dvinh, dvexth, dvouth, dvrefh, dvoffsh, direfh, dvoutpreh = [], [], [], [], [], [], [], []
 
             for row in datas:
+                if row[0] > 1.2:
+                    break
                 iin.append((row[0]))
                 diin.append((row[8]))
                 vin.append(row[1])
