@@ -495,6 +495,7 @@ class Chip_overview(object):
 
         plt.legend(lines, labels, loc=3)
         plt.grid()
+        plt.tight_layout()
 
         filepath = self.filepath + '/' + flavor + '/Fits'
         if not os.path.exists(os.path.normpath(filepath)):
@@ -544,6 +545,7 @@ class Chip_overview(object):
 
         plt.legend(lines, labels, loc=2)
         plt.grid()
+        plt.tight_layout()
 
         filepath = self.filepath + '/' + flavor + '/Fits'
         if not os.path.exists(os.path.normpath(filepath)):
@@ -582,7 +584,7 @@ class Chip_overview(object):
         ax1.set_xlabel(flavor2 + ' / Mrad')
 
         ax1.set_ylabel("V/V(0)")
-        ax2.set_ylabel("Slope/Slope(0)")
+        ax2.set_ylabel("Slope / V/A")
         ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
         ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
 
@@ -592,6 +594,7 @@ class Chip_overview(object):
 
         plt.legend(lines, labels, loc=2)
         ax1.grid()
+        plt.tight_layout()
 
         filepath = self.filepath + '/' + flavor + '/Fits'
         if not os.path.exists(os.path.normpath(filepath)):
@@ -628,7 +631,6 @@ class Chip_overview(object):
             x_err.append(self.dose[int(x_axis_s[i])]*0.2)
 
         if rel:
-            p_slope_s = p_slope_s / p_slope_s[0]
             p_mean_s = p_mean_s / p_mean_s[0]
             p_offs_s = p_offs_s / p_offs_s[0]
 
@@ -811,7 +813,7 @@ class Chip_overview(object):
                               'I_ref': {'loc': 5, 'title': 'Reference Current Sense Voltage'},
                               'V_outpre': {'loc': 6, 'title': 'Preregulator Output Voltage'},
                               'NTC': {'loc': 7, 'title': 'NTC Temperature'},
-                              'Offs': {'title': 'Offset Voltage'}}
+                              'Offs': {'loc': 4, 'title': 'Offset Voltage'}}
 
         for root, dirs, files in os.walk(".", topdown=False):
             for name in files:
