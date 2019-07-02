@@ -282,75 +282,75 @@ class Chip_overview(object):
             plt.close()
 
 
-    def plot_iv_col2(self, filelist, name='V_in', data=None, chip='000', flavor='IV', specifics='', filename="file"):
-        fig = plt.figure(1)
-        ax1 = fig.add_subplot(121)
-        ax2 = fig.add_subplot(122)
-
-        scalex = 0.6
-
-        legend_dict = {}
-        color = iter(cm.rainbow(np.linspace(0, 1, len(data.keys()))))
+    def plot_iv_poly(self, filelist, name='V_in', data=None, chip='000', flavor='IV', filename="file"):
+        try:
+            self.name
+        except:
+            self.name = "Chip_" + chip_id[-3:] + "_fit_log.yaml"
+        fit_log = yaml.load(open(self.name, 'r'))
 
         for key in filelist:
-            c = next(color)
-
             save_k = key.split('_')
             save_key = save_k[0]
             save_key = int(save_key)
 
             datas = data[key]['data']
             iin, vin = [], []
+            p, x = [0., 0.], [0., 0.]
+            scalex = 0.6
 
+            fig = plt.figure(1)
+            ax1 = fig.add_subplot(111)
 
             for row in datas:
                 iin.append((row[0]))
                 vin.append(row[self.list_of_names[name]['loc']])
 
-            label = name + ' (' + str(self.dose[save_key]) + 'Mrad)'
+            if name == 'V_in' and flavor == 'LineReg':
+                p[0] = (fit_log[flavor]['run' + str(save_key)]['R_eff'])
+                p[1] = (fit_log[flavor]['run' + str(save_key)]['Offs']['eff'])
+            else:
+                p[0] = (fit_log[flavor]['run' + str(save_key)][name]['slope'])
+                p[1] = (fit_log[flavor]['run' + str(save_key)][name]['offset'])
 
-            ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.1, markersize='1', color=c,
-                         label=label)
-
-            legend_dict[label] = c
+            label = self.list_of_names[name]['title'] + ' (' + str(self.dose[save_key]) + 'Mrad)'
+            ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.5, markersize='1', label='Data')
 
             max_x = max(iin) + 0.05
             if scalex < max_x:
                 scalex = max_x
 
-        if flavor == 'LoadReg':
-            ax1.set_xlabel("Load Current / A")
-        else:
-            ax1.set_xlabel("Input Current / A")
-        ax1.set_ylabel("Voltage / V")
-        ax2.set_ylabel("Dose / MRad")
+            x[1] = scalex
+            y = np.polyval(p, x)
+            ax1.plot(x, y, linestyle='-', marker=None, linewidth=0.5, label='Fit')
 
-        ax1.axis([0, scalex, 0, 2.1])
+            ax1.set_title(label)
+            if flavor == 'LoadReg':
+                ax1.set_xlabel("Load Current / A")
+            else:
+                ax1.set_xlabel("Input Current / A")
+            ax1.set_ylabel("Voltage / V")
+            ax1.set_ylabel("Dose / MRad")
 
-        cax = plt.axes([0.85, 0.1, 0.075, 0.8])
-        fig.colorbar(cax=cax)
+            ax1.axis([0, scalex, 0, 2.1])
 
-        colors = legend_dict.values()
-        labels = legend_dict.keys()
-        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+            plt.legend()
+            plt.grid()
 
-        plt.legend(lines, labels, loc=2)
-        plt.grid()
+            logging.info("Saving plot %s" % filename)
+            filepath = self.filepath + '/' + flavor + '/Fits/Polyval/run' + str(save_key)
+            if not os.path.exists(os.path.normpath(filepath)):
+                os.makedirs(os.path.normpath(filepath))
+            os.chdir(normpath(filepath))
+            try:
+                plt.savefig('Chip' + chip[-3:] + '_' + flavor + '_' + str(save_key) + '_' + name + '.pdf')
+            except:
+                logging.error("Plot %s could not be saved" % filename)
+                raise ValueError
+            logging.info("Finished.")
+            os.chdir(normpath(self.filepath))
 
-        logging.info("Saving plot %s" % filename)
-        filepath = self.filepath + '/' + flavor +'/Colored'
-        if not os.path.exists(os.path.normpath(filepath)):
-            os.makedirs(os.path.normpath(filepath))
-        os.chdir(normpath(filepath))
-        try:
-            plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '_' + name + '_Colored.pdf')
-        except:
-            logging.error("Plot %s could not be saved" % filename)
-            raise ValueError
-        logging.info("Finished.")
-        os.chdir(normpath(self.filepath))
-
-        plt.close()
+            plt.close()
 
 
     def plot_currentmirror(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = 50):
@@ -859,6 +859,12 @@ class Chip_overview(object):
             self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
                               specifics=specifics)
 
+            self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='Offs', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
+
 
         else:
             #self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
@@ -875,7 +881,7 @@ class Chip_overview(object):
             self.create_plot_rel('V_ref', chip_id)
             self.create_plot('I_ref', chip_id)
             self.create_plot_rel('I_ref', chip_id)
-#
+
             self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
             self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
                               specifics=specifics)
@@ -887,13 +893,19 @@ class Chip_overview(object):
                               specifics=specifics)
             self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
                               specifics=specifics)
+            self.plot_iv_poly(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='Offs', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
 
 if __name__ == "__main__":
     root_path = os.getcwd()
     chips = Chip_overview()
     chip_id = 'BN004'
     flavor2 = 'TID'
-    flavor = 'LineReg'
+    flavor = 'LoadReg'
     specifics = ''
     chips.create_iv_overview(chip_id, flavor, specifics, main=True)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
