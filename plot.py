@@ -18,7 +18,7 @@ from matplotlib.collections import LineCollection
 
 class Chip_overview(object):
     def plot_ntc(self, data=None, chip='000', specifics='', filename="file", fit_length=[25, 45]):
-        fig = plt.figure(1)
+        fig = plt.figure(1, figsize=(8, 4.8))
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
         scale2 = [0, 40]
@@ -79,13 +79,13 @@ class Chip_overview(object):
 
             ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='red',
                      label='Input Voltage')
-            legend_dict['Input Voltage'] = 'red'
+            legend_dict['V_in'] = 'red'
             if specifics != '':
                 ax1.fill_between(iin, dvinl, dvinh, facecolors='tomato')
 
             ax1.plot(iin, vout, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='purple',
-                     label='Output Voltage')
-            legend_dict['Output Voltage'] = 'purple'
+                     label='V_out')
+            legend_dict['V_out'] = 'purple'
             if specifics != '':
                 ax1.fill_between(iin, dvoutl, dvouth, facecolors='magenta')
 
@@ -108,13 +108,13 @@ class Chip_overview(object):
             ntc1_exists = True
             ax1.plot(iin, voffs, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='blue',
                      label='Offset Voltage')
-            legend_dict['Offset Voltage'] = 'blue'
+            legend_dict['V_offs'] = 'blue'
             if specifics != '':
                 ax1.fill_between(iin, dvoffsl, dvoffsh, facecolors='lightblue')
 
             ax1.plot(iin, vref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='olive',
                      label='Reference Voltage')
-            legend_dict['Reference Voltage'] = 'olive'
+            legend_dict['V_ref'] = 'olive'
             if specifics != '':
                 ax1.fill_between(iin, dvrefl, dvrefh, facecolors='yellowgreen')
             # elif 'NTC2' in key:
@@ -133,15 +133,15 @@ class Chip_overview(object):
             #
             # elif 'NTC3' in key:
             ntc3_exists = True
-            ax1.plot(iin, voutpre, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='yellow',
+            ax1.plot(iin, voutpre, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='orange',
                      label='Prereg Output Voltage')
-            legend_dict['Prereg Output Voltage'] = 'yellow'
+            legend_dict['V_outpre'] = 'orange'
             if specifics != '':
-                ax1.fill_between(iin, dvoutprel, dvoutpreh, facecolors='lightyellow')
+                ax1.fill_between(iin, dvoutprel, dvoutpreh, facecolors='navajowhite')
 
             ax1.plot(iin, iref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
                      label='Reference Current')
-            legend_dict['Reference Current Sense'] = 'brown'
+            legend_dict['I_ref Sense'] = 'brown'
             if specifics != '':
                 ax1.fill_between(iin, direfl, direfh, facecolors='indianred')
 
@@ -181,8 +181,10 @@ class Chip_overview(object):
 
         if flavor == 'LoadReg':
             ax1.set_xlabel("Load Current / A")
+            ax1.set_title("IV-Overview: Load Regulation Mode")
         else:
             ax1.set_xlabel("Input Current / A")
+            ax1.set_title("IV-Overview: Line Regulation Mode")
 
         ax1.set_ylabel("Voltage / V")
         ax2.set_ylabel("NTC Temperature")
@@ -191,8 +193,9 @@ class Chip_overview(object):
         labels = legend_dict.keys()
         lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
 
-        plt.legend(lines, labels, loc=2)
+        plt.legend(lines, labels, bbox_to_anchor=(1.05, 1.0),loc=2, fontsize='small')
         plt.grid()
+        plt.tight_layout()
 
         logging.info("Saving plot %s" % filename)
         filepath = self.filepath + '/' + flavor
@@ -330,7 +333,7 @@ class Chip_overview(object):
             else:
                 ax1.set_xlabel("Input Current / A")
             ax1.set_ylabel("Voltage / V")
-            ax1.set_ylabel("Dose / MRad")
+
 
             ax1.axis([0, scalex, 0, 2.1])
 
@@ -482,12 +485,12 @@ class Chip_overview(object):
             ax1.set_ylabel("Voltage / Voltage(0)")
             ax2.set_ylabel("Resistance / Resistance(0)")
 
-            ax1.set_title('Relative Regulator Spread form Line Regulation')
+            ax1.set_title('Relative offset changes and effective resistance')
         else:
             ax1.set_ylabel("Voltage / V")
             ax2.set_ylabel("Resistance / Ω")
 
-            ax1.set_title('Regulator Spread form Line Regulation')
+            ax1.set_title('Fits to Offset and effective Resistance')
 
         colors = legend_dict.values()
         labels = legend_dict.keys()
