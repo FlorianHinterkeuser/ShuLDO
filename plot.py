@@ -465,18 +465,22 @@ class Chip_overview(object):
         ax2.errorbar(x_axis_c, vin_effective_res_s, None, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='red', capsize=2, markeredgewidth=1, label='Effective Input Resistance')
         legend_dict['Effective Input Resistance'] = 'red'
         ax1.errorbar(x_axis_c, vin_offset_s, None, x_err,  marker='.', fmt='o', linewidth=0.3, markersize='3', color='blue', capsize=2, markeredgewidth=1, label='Offset from Vin')
-        legend_dict['Offset Voltage from Fit to Input Voltage'] = 'blue'
+        legend_dict['Effective Offset from Fit to V_in'] = 'blue'
         ax1.errorbar(x_axis_c, voffs_offset_s, None, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='green', capsize=2, markeredgewidth=1, label='Voffs fit offset')
-        legend_dict['Offset Voltage from Fit'] = 'green'
+        legend_dict['Offset from Fit to V_offs'] = 'green'
         ax1.errorbar(x_axis_c, voffs_mean_s, None, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='black', capsize=2, markeredgewidth=1, label='Mean Voffs')
         legend_dict['Mean Offset Voltage'] = 'black'
         ax1.semilogx()
+
+        if not rel:
+            ax2.axhline(0.8, color='orange')
+            legend_dict['expected effective Resistance'] = 'orange'
 
         if rel:
             ax1.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.9, 1.1])
             ax2.axis([min(x_axis_c) - min(x_axis_c) * 0.25, max(x_axis_c) + max(x_axis_c) * 0.25, 0.9, 1.1])
         else:
-            ax1.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.5, 1.2])
+            ax1.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.4, 1.1])
             ax2.axis([min(x_axis_c) - min(x_axis_c) * 0.25, max(x_axis_c) + max(x_axis_c) * 0.25, 0.5, 1.2])
 
         ax1.set_xlabel("TID / Mrad")
