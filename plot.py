@@ -167,15 +167,15 @@ class Chip_overview(object):
                 self.fit_log[flavor]["run" + save_key] = {}
 
             try:
-                self.fit_log[flavor]["run" + save_key]["Offs"]
+                self.fit_log[flavor]["run" + save_key]["V_offs"]
             except:
-                self.fit_log[flavor]["run" + save_key]["Offs"] = {}
+                self.fit_log[flavor]["run" + save_key]["V_offs"] = {}
 
             self.fit_log[flavor]["run" + save_key]["R_eff"] = float(x[0])
-            self.fit_log[flavor]["run" + save_key]["Offs"]["eff"] = float(x[1])
-            self.fit_log[flavor]["run" + save_key]["Offs"]["mean"] = float(offset_mean)
-            self.fit_log[flavor]["run" + save_key]["Offs"]["offset"] = float(y[1])
-            self.fit_log[flavor]["run" + save_key]["Offs"]["slope"] = float(y[0])
+            self.fit_log[flavor]["run" + save_key]["V_offs"]["eff"] = float(x[1])
+            self.fit_log[flavor]["run" + save_key]["V_offs"]["mean"] = float(offset_mean)
+            self.fit_log[flavor]["run" + save_key]["V_offs"]["offset"] = float(y[1])
+            self.fit_log[flavor]["run" + save_key]["V_offs"]["slope"] = float(y[0])
 
         ax2.axis([0.1, scalex, scale2[0], scale2[1]])
 
@@ -311,7 +311,7 @@ class Chip_overview(object):
 
             if name == 'V_in' and flavor == 'LineReg':
                 p[0] = (fit_log[flavor]['run' + str(save_key)]['R_eff'])
-                p[1] = (fit_log[flavor]['run' + str(save_key)]['Offs']['eff'])
+                p[1] = (fit_log[flavor]['run' + str(save_key)]['V_offs']['eff'])
             else:
                 p[0] = (fit_log[flavor]['run' + str(save_key)][name]['slope'])
                 p[1] = (fit_log[flavor]['run' + str(save_key)][name]['offset'])
@@ -440,10 +440,10 @@ class Chip_overview(object):
             runs_save = runs[3:]
             y_axis.append(int(runs_save))
             self.vin_effective_res.append(fit_log[flavor][runs]['R_eff'])
-            self.voffs_slope.append(fit_log[flavor][runs]['Offs']['slope'])
-            self.vin_offset.append(fit_log[flavor][runs]['Offs']['eff'])
-            self.voffs_offset.append(fit_log[flavor][runs]['Offs']['offset'])
-            self.voffs_means.append(fit_log[flavor][runs]['Offs']['mean'])
+            self.voffs_slope.append(fit_log[flavor][runs]['V_offs']['slope'])
+            self.vin_offset.append(fit_log[flavor][runs]['V_offs']['eff'])
+            self.voffs_offset.append(fit_log[flavor][runs]['V_offs']['offset'])
+            self.voffs_means.append(fit_log[flavor][runs]['V_offs']['mean'])
 
         order = np.argsort(y_axis)
         vin_effective_res_s = np.array(self.vin_effective_res)[order]
@@ -819,8 +819,7 @@ class Chip_overview(object):
                               'V_offs': {'loc': 4, 'title': 'Offset Voltage'},
                               'I_ref': {'loc': 5, 'title': 'Reference Current Sense Voltage'},
                               'V_outpre': {'loc': 6, 'title': 'Preregulator Output Voltage'},
-                              'NTC': {'loc': 7, 'title': 'NTC Temperature'},
-                              'Offs': {'loc': 4, 'title': 'Offset Voltage'}}
+                              'NTC': {'loc': 7, 'title': 'NTC Temperature'}}
 
         for root, dirs, files in os.walk(".", topdown=False):
             for name in files:
@@ -842,37 +841,37 @@ class Chip_overview(object):
 
         elif 'LoadReg' in flavor:
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics, fit_length=[0, 15])
-            self.dump_plotdata()
+            #self.dump_plotdata()
 
-            self.create_plot('V_out', chip_id)
-            self.create_plot_rel('V_out', chip_id)
-            self.create_plot('V_outpre', chip_id)
-            self.create_plot_rel('V_outpre', chip_id)
-            self.create_plot('V_ref', chip_id)
-            self.create_plot_rel('V_ref', chip_id)
-            self.create_plot('I_ref', chip_id)
-            self.create_plot_rel('I_ref', chip_id)
-            self.create_plot('Offs', chip_id)
-            self.create_plot_rel('Offs', chip_id)
+            #self.create_plot('V_out', chip_id)
+            #self.create_plot_rel('V_out', chip_id)
+            #self.create_plot('V_outpre', chip_id)
+            #self.create_plot_rel('V_outpre', chip_id)
+            #self.create_plot('V_ref', chip_id)
+            #self.create_plot_rel('V_ref', chip_id)
+            #self.create_plot('I_ref', chip_id)
+            #self.create_plot_rel('I_ref', chip_id)
+            #self.create_plot('V_offs', chip_id)
+            #self.create_plot_rel('V_offs', chip_id)
 
-            self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_col(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_col(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_col(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
+            #self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_col(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_col(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_col(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
 
-            self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='Offs', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
 
 
         else:
@@ -881,40 +880,40 @@ class Chip_overview(object):
             self.dump_plotdata()
 
             self.plot_iv_spread(chip=chip_id, specifics=specifics)
-            self.plot_iv_spread(chip=chip_id, specifics=specifics, rel=True)
-            self.create_plot('V_out', chip_id)
-            self.create_plot_rel('V_out', chip_id)
-            self.create_plot('V_outpre', chip_id)
-            self.create_plot_rel('V_outpre', chip_id)
-            self.create_plot('V_ref', chip_id)
-            self.create_plot_rel('V_ref', chip_id)
-            self.create_plot('I_ref', chip_id)
-            self.create_plot_rel('I_ref', chip_id)
+            #self.plot_iv_spread(chip=chip_id, specifics=specifics, rel=True)
+            #self.create_plot('V_out', chip_id)
+            #self.create_plot_rel('V_out', chip_id)
+            #self.create_plot('V_outpre', chip_id)
+            #self.create_plot_rel('V_outpre', chip_id)
+            #self.create_plot('V_ref', chip_id)
+            #self.create_plot_rel('V_ref', chip_id)
+            #self.create_plot('I_ref', chip_id)
+            #self.create_plot_rel('I_ref', chip_id)
 
-            self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
-            self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_col(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_col(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_col(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
-                              specifics=specifics)
-            self.plot_iv_poly(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='Offs', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
+            #self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_col(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_col(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_col(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
+            #                  specifics=specifics)
+            #self.plot_iv_poly(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
 
 if __name__ == "__main__":
     root_path = os.getcwd()
     chips = Chip_overview()
     chip_id = 'BN004'
     flavor2 = 'TID'
-    flavor = 'LoadReg'
+    flavor = 'LineReg'
     specifics = ''
     chips.create_iv_overview(chip_id, flavor, specifics, main=True)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
