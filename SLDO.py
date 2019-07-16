@@ -216,7 +216,75 @@ class IV(object):
         misc.reset(1, 'Sourcemeter2')
         misc.reset(2, 'Sourcemeter2')
 #        misc.reset(1, 'Sourcemeter3')
-    
+
+    def current_mirror(self, file_name, max_Iin, inputPolarity, steps, stepSize, run_number = 0):
+        '''
+            Different methodes to estimate k-value
+        '''
+        logging.info("Starting ...")
+
+        misc.set_scan('Sourcemeter2', channel=1, mode='CURR', vlim=2, ilim=0)
+        misc.set_scan('Sourcemeter2', channel=2, mode='VOLT', vlim=0, ilim=0.1)
+
+        fncounter = 1
+
+        filename = str(run_number) + "_" + file_name + "_CurrentMirror.csv"
+        while os.path.isfile(file_name):
+            filename = filename.split('.')[0]
+            filename = filename + "_" + str(fncounter) + ".csv"
+            fncounter = fncounter + 1
+
+        if os.path.isfile(filename):
+            logging.error("Change run number, you moron!")
+            raise RuntimeError
+
+        with open(filename, 'wb') as outfile:
+            f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
+            f.writerow(
+                ['Input current [A]', 'Input voltage [V]', 'Vext [V]', 'Iext [A]', 'NTC [Ohm]', 'dIin [A]', 'dVin [V]', 'dVext [V]', 'dIext [A]', 'dNTC [Ohm]'])
+
+            dut['VDD1'].set_current_limit(0)
+            time.sleep(1)
+            iin = 0.001
+            dut['VDD1'].set_voltage(2)
+            time.sleep(0.5)
+            dut['VDD1'].reset_trip()
+            time.sleep(0.5)
+
+            dut['VDD1'].set_enable(on=True)
+            time.sleep(1)
+
+            for x in range(0, int(steps)):
+
+                logging.info("Setting Current to %f" % iin)
+                dut['VDD1'].set_current_limit(iin)
+                time.sleep(0.5)
+
+                logging.info("measuring ...")
+                input_voltage = dut['VDD1'].get_voltage()
+                #                time.sleep(0.5)
+                vext = misc.measure_voltage(1, 'Sourcemeter1')
+                iext = misc.measure_voltage(2, 'Sourcemeter1')
+
+                ntc = misc.measure_resistance(0, 'Multimeter1')
+
+                misc.data.append(
+                    [iin, input_voltage, vext[0], iext[0], ntc[0], iin * 0.001,
+                     input_voltage * 0.005, vext[1], iext[1], ntc[1]])
+                f.writerow(misc.data[-1])
+
+                iin += stepSize
+                if float(iin) > float(max_Iin) or float(input_voltage) >= 1.999:
+                    break
+                logging.info("Next step")
+
+        logging.info('Measurement finished.')
+
+        misc.reset(1, 'Sourcemeter1')
+        misc.reset(2, 'Sourcemeter1')
+
+        return iin
+
     def shutdown_tti(self):
         dut['VDD1'].set_enable(on=False)
 
