@@ -15,6 +15,8 @@ import yaml
 from matplotlib.pyplot import cm
 import matplotlib.colors as mplcolor
 from matplotlib.collections import LineCollection
+from scipy.odr import odrpack as odr
+from scipy.odr import models
 
 class Chip_overview(object):
     def plot_ntc(self, data=None, chip='000', specifics='', filename="file", fit_length=[25, 45]):
@@ -59,8 +61,8 @@ class Chip_overview(object):
                 vext.append(1 / (1. / 298.15 + 1. / 3435. * math.log(row[7] / 10000.)) - 273.15)
             if specifics != '':
                 for i in range(len(dvin)):
-                    dvinl.append(vin[i] - dvin[i])
-                    dvinh.append(vin[i] + dvin[i])
+                    dvinl.append(vin[i] - vin[i]*0.001 - 0.01)
+                    dvinh.append(vin[i] + vin[i]*0.001 + 0.01)
 
                     dvoutl.append(vout[i] - dvout[i])
                     dvouth.append(vout[i] + dvout[i])
@@ -146,8 +148,9 @@ class Chip_overview(object):
                 ax1.fill_between(iin, direfl, direfh, facecolors='indianred')
 
             # Fits to determine R_eff and Offs
-            x = np.polyfit(iin[fit_length[0]:fit_length[1]], vin[fit_length[0]:fit_length[1]], 1)
-            y = np.polyfit(iin[fit_length[0]:fit_length[1]], voffs[fit_length[0]:fit_length[1]], 1)
+            x, x_err = self.poly_lsq(iin[fit_length[0]:fit_length[1]], vin[fit_length[0]:fit_length[1]], 1)
+
+            y, y_err = self.poly_lsq(iin[fit_length[0]:fit_length[1]], voffs[fit_length[0]:fit_length[1]], 1)
 
             self.fit_to_data(iin, vout, save_key, 'V_out', fit_length)
             self.fit_to_data(iin, voutpre, save_key, 'V_outpre', fit_length)
@@ -155,6 +158,7 @@ class Chip_overview(object):
             self.fit_to_data(iin, vref, save_key, 'V_ref', fit_length)
 
             offset_mean = np.mean(voffs[fit_length[0]:])
+            offset_mean_err = np.std(voffs[fit_length[0]:])
 
             try:
                 self.fit_log[flavor]
@@ -171,11 +175,11 @@ class Chip_overview(object):
             except:
                 self.fit_log[flavor]["run" + save_key]["V_offs"] = {}
 
-            self.fit_log[flavor]["run" + save_key]["R_eff"] = float(x[0])
-            self.fit_log[flavor]["run" + save_key]["V_offs"]["eff"] = float(x[1])
-            self.fit_log[flavor]["run" + save_key]["V_offs"]["mean"] = float(offset_mean)
-            self.fit_log[flavor]["run" + save_key]["V_offs"]["offset"] = float(y[1])
-            self.fit_log[flavor]["run" + save_key]["V_offs"]["slope"] = float(y[0])
+            self.fit_log[flavor]["run" + save_key]["R_eff"] = [float(x[0]), float(x_err[0])]
+            self.fit_log[flavor]["run" + save_key]["V_offs"]["eff"] = [float(x[1]), float(x_err[1])]
+            self.fit_log[flavor]["run" + save_key]["V_offs"]["mean"] = [float(offset_mean), float(offset_mean_err)]
+            self.fit_log[flavor]["run" + save_key]["V_offs"]["offset"] = [float(y[1]), float(y_err[1])]
+            self.fit_log[flavor]["run" + save_key]["V_offs"]["slope"] = [float(y[0]), float(y_err[0])]
 
         ax2.axis([0.1, scalex, scale2[0], scale2[1]])
 
@@ -310,11 +314,11 @@ class Chip_overview(object):
                 vin.append(row[self.list_of_names[name]['loc']])
 
             if name == 'V_in' and flavor == 'LineReg':
-                p[0] = (fit_log[flavor]['run' + str(save_key)]['R_eff'])
-                p[1] = (fit_log[flavor]['run' + str(save_key)]['V_offs']['eff'])
+                p[0] = (fit_log[flavor]['run' + str(save_key)]['R_eff'])[0]
+                p[1] = (fit_log[flavor]['run' + str(save_key)]['V_offs']['eff'])[0]
             else:
-                p[0] = (fit_log[flavor]['run' + str(save_key)][name]['slope'])
-                p[1] = (fit_log[flavor]['run' + str(save_key)][name]['offset'])
+                p[0] = (fit_log[flavor]['run' + str(save_key)][name]['slope'])[0]
+                p[1] = (fit_log[flavor]['run' + str(save_key)][name]['offset'])[0]
 
             label = self.list_of_names[name]['title'] + ' (' + str(self.dose[save_key]) + 'Mrad)'
             ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.5, markersize='1', label='Data')
@@ -425,6 +429,12 @@ class Chip_overview(object):
         self.vin_offset = []
         self.voffs_offset = []
         self.voffs_means = []
+        self.vin_effective_res_err = []
+        self.voffs_slope_err = []
+        self.vin_offset_err = []
+        self.voffs_offset_err = []
+        self.voffs_means_err = []
+
         temps = [30, 15, 0, -15, -30, -40]
         y_axis = []
         x_axis_c = []
@@ -439,11 +449,18 @@ class Chip_overview(object):
         for runs in fit_log[flavor]:
             runs_save = runs[3:]
             y_axis.append(int(runs_save))
-            self.vin_effective_res.append(fit_log[flavor][runs]['R_eff'])
-            self.voffs_slope.append(fit_log[flavor][runs]['V_offs']['slope'])
-            self.vin_offset.append(fit_log[flavor][runs]['V_offs']['eff'])
-            self.voffs_offset.append(fit_log[flavor][runs]['V_offs']['offset'])
-            self.voffs_means.append(fit_log[flavor][runs]['V_offs']['mean'])
+
+            self.vin_effective_res.append(fit_log[flavor][runs]['R_eff'][0])
+            self.voffs_slope.append(fit_log[flavor][runs]['V_offs']['slope'][0])
+            self.vin_offset.append(fit_log[flavor][runs]['V_offs']['eff'][0])
+            self.voffs_offset.append(fit_log[flavor][runs]['V_offs']['offset'][0])
+            self.voffs_means.append(fit_log[flavor][runs]['V_offs']['mean'][0])
+
+            self.vin_effective_res_err.append(fit_log[flavor][runs]['R_eff'][1])
+            self.voffs_slope_err.append(fit_log[flavor][runs]['V_offs']['slope'][1])
+            self.vin_offset_err.append(fit_log[flavor][runs]['V_offs']['eff'][1])
+            self.voffs_offset_err.append(fit_log[flavor][runs]['V_offs']['offset'][1])
+            self.voffs_means_err.append(fit_log[flavor][runs]['V_offs']['mean'][1])
 
         order = np.argsort(y_axis)
         vin_effective_res_s = np.array(self.vin_effective_res)[order]
@@ -451,6 +468,11 @@ class Chip_overview(object):
         voffs_offset_s = np.array(self.voffs_offset)[order]
         voffs_mean_s = np.array(self.voffs_means)[order]
         x_axis_s = np.array(y_axis)[order]
+
+        vin_effective_res_err_s = np.array(self.vin_effective_res_err)[order]
+        vin_offset_err_s = np.array(self.vin_offset_err)[order]
+        voffs_offset_err_s = np.array(self.voffs_offset_err)[order]
+        voffs_mean_err_s = np.array(self.voffs_means_err)[order]
 
         for i in range(len(x_axis_s)):
             x_axis_c.append(self.dose[int(x_axis_s[i])])
@@ -462,13 +484,13 @@ class Chip_overview(object):
             voffs_offset_s = voffs_offset_s / voffs_offset_s[0]
             voffs_mean_s = voffs_mean_s / voffs_mean_s[0]
 
-        ax2.errorbar(x_axis_c, vin_effective_res_s, None, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='red', capsize=2, markeredgewidth=1, label='Effective Input Resistance')
+        ax2.errorbar(x_axis_c, vin_effective_res_s, vin_effective_res_err_s, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='red', capsize=2, markeredgewidth=1, label='Effective Input Resistance')
         legend_dict['Effective Input Resistance'] = 'red'
-        ax1.errorbar(x_axis_c, vin_offset_s, None, x_err,  marker='.', fmt='o', linewidth=0.3, markersize='3', color='blue', capsize=2, markeredgewidth=1, label='Offset from Vin')
+        ax1.errorbar(x_axis_c, vin_offset_s, vin_offset_err_s, x_err,  marker='.', fmt='o', linewidth=0.3, markersize='3', color='blue', capsize=2, markeredgewidth=1, label='Offset from Vin')
         legend_dict['Effective Offset from Fit to V_in'] = 'blue'
-        ax1.errorbar(x_axis_c, voffs_offset_s, None, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='green', capsize=2, markeredgewidth=1, label='Voffs fit offset')
+        ax1.errorbar(x_axis_c, voffs_offset_s, voffs_offset_err_s, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='green', capsize=2, markeredgewidth=1, label='Voffs fit offset')
         legend_dict['Offset from Fit to V_offs'] = 'green'
-        ax1.errorbar(x_axis_c, voffs_mean_s, None, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='black', capsize=2, markeredgewidth=1, label='Mean Voffs')
+        ax1.errorbar(x_axis_c, voffs_mean_s, voffs_mean_err_s, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='black', capsize=2, markeredgewidth=1, label='Mean Voffs')
         legend_dict['Mean Offset Voltage'] = 'black'
         ax1.semilogx()
 
@@ -618,20 +640,27 @@ class Chip_overview(object):
     def plot_from_fit_log(self, ax1, ax2, scale1, scale2, scale_x, name, rel = False):
         fit_log = yaml.load(open(self.name, 'r'))
         p_slope, p_mean, p_offs, x_axis, x_axis_c = [], [], [], [], []
+        p_slope_err, p_mean_err, p_offs_err = [], [], []
         x_err = []
 
         for runs in fit_log[flavor]:
             runs_save = runs[3:]
             x_axis.append(int(runs_save))
-            p_slope.append(fit_log[flavor][runs][name]['slope'])
-            p_mean.append(fit_log[flavor][runs][name]['mean'])
-            p_offs.append(fit_log[flavor][runs][name]['offset'])
+            p_slope.append(fit_log[flavor][runs][name]['slope'][0])
+            p_mean.append(fit_log[flavor][runs][name]['mean'][0])
+            p_offs.append(fit_log[flavor][runs][name]['offset'][0])
+            p_slope_err.append(fit_log[flavor][runs][name]['slope'][1])
+            p_mean_err.append(fit_log[flavor][runs][name]['mean'][1])
+            p_offs_err.append(fit_log[flavor][runs][name]['offset'][1])
 
         order = np.argsort(x_axis)
         p_slope_s = np.array(p_slope)[order]
         p_mean_s = np.array(p_mean)[order]
         p_offs_s = np.array(p_offs)[order]
         x_axis_s = np.array(x_axis)[order]
+        p_slope_err_s = np.array(p_slope_err)[order]
+        p_mean_err_s = np.array(p_mean_err)[order]
+        p_offs_err_s = np.array(p_offs_err)[order]
 
         for i in range(len(x_axis_s)):
             x_axis_c.append(self.dose[int(x_axis_s[i])])
@@ -640,6 +669,8 @@ class Chip_overview(object):
         if rel:
             p_mean_s = p_mean_s / p_mean_s[0]
             p_offs_s = p_offs_s / p_offs_s[0]
+            p_mean_err_s = p_mean_err_s / p_mean_s[0]
+            p_offs_err_s = p_offs_err_s / p_offs_s[0]
 
         label1 = str('slope')
         label2 = str('mean')
@@ -647,12 +678,12 @@ class Chip_overview(object):
         color1 = 'red'
         color2 = 'green'
         color3 = 'blue'
-        ax1.errorbar(x_axis_c, p_slope_s, None, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color1, capsize= 2, markeredgewidth=1, label=label1)
+        ax1.errorbar(x_axis_c, p_slope_s, p_slope_err_s, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color1, capsize= 2, markeredgewidth=1, label=label1)
         ax1.semilogx()
         self.legend_dict[label1] = color1
-        ax2.errorbar(x_axis_c, p_mean_s, None, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color2, capsize= 2, markeredgewidth=1, label=label2)
+        ax2.errorbar(x_axis_c, p_mean_s, p_mean_err_s, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color2, capsize= 2, markeredgewidth=1, label=label2)
         self.legend_dict[label2] = color2
-        ax2.errorbar(x_axis_c, p_offs_s, None, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color3, capsize= 2, markeredgewidth=1, label=label3)
+        ax2.errorbar(x_axis_c, p_offs_s, p_offs_err_s, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color3, capsize= 2, markeredgewidth=1, label=label3)
         ax2.semilogx()
         self.legend_dict[label3] = color3
 
@@ -692,11 +723,13 @@ class Chip_overview(object):
 
     def fit_to_data(self, x, y, save_key, name, fit_length):
         if flavor == 'LoadReg':
-            fit_res = np.polyfit(x[fit_length[0]:fit_length[1]], y[fit_length[0]:fit_length[1]], 1)
+            fit_res, fit_res_err = self.poly_lsq(x[fit_length[0]:fit_length[1]], y[fit_length[0]:fit_length[1]], 1)
             fit_mean = np.mean(y[fit_length[0]:fit_length[1]])
+            fit_mean_err = np.std(y[fit_length[0]:fit_length[1]])
         else:
-            fit_res = np.polyfit(x[fit_length[0]:], y[fit_length[0]:], 1)
+            fit_res, fit_res_err = self.poly_lsq(x[fit_length[0]:], y[fit_length[0]:], 1)
             fit_mean = np.mean(y[fit_length[0]:])
+            fit_mean_err = np.std(y[fit_length[0]:])
 
         try:
             self.fit_log[flavor]
@@ -713,9 +746,9 @@ class Chip_overview(object):
         except:
             self.fit_log[flavor]["run" + save_key][name] = {}
 
-        self.fit_log[flavor]["run" + save_key][name]["mean"] = float(fit_mean)
-        self.fit_log[flavor]["run" + save_key][name]["offset"] = float(fit_res[1])
-        self.fit_log[flavor]["run" + save_key][name]["slope"] = float(fit_res[0])
+        self.fit_log[flavor]["run" + save_key][name]["mean"] = [float(fit_mean), float(fit_mean_err)]
+        self.fit_log[flavor]["run" + save_key][name]["offset"] = [float(fit_res[1]), float(fit_res_err[1])]
+        self.fit_log[flavor]["run" + save_key][name]["slope"] = [float(fit_res[0]), float(fit_res_err[0])]
 
 
     def file_to_array(self, file):
@@ -793,6 +826,48 @@ class Chip_overview(object):
         ax.autoscale()
         return lc
 
+    def poly_lsq(self, x, y, n, verbose=False):
+        ''' Performs a polynomial least squares fit to the data,
+        with errors! Uses scipy odrpack, but for least squares.
+
+        IN:
+           x,y (arrays) - data to fit
+           n (int)      - polinomial order
+           verbose      - can be 0,1,2 for different levels of output
+                          (False or True are the same as 0 or 1)
+           itmax (int)  - optional maximum number of iterations
+
+        OUT:
+           coeff -  polynomial coefficients, lowest order first
+           err   - standard error (1-sigma) on the coefficients
+        --Tiago, 20071114
+        '''
+
+        # http://www.scipy.org/doc/api_docs/SciPy.odr.odrpack.html
+        # see models.py and use ready made models!!!!
+
+        func = models.polynomial(n)
+        mydata = odr.Data(x, y)
+        myodr = odr.ODR(mydata, func)
+
+        # Set type of fit to least-squares:
+        myodr.set_job(fit_type=2)
+        if verbose == 2: myodr.set_iprint(final=2)
+
+        fit = myodr.run()
+
+        # Display results:
+        if verbose: fit.pprint()
+
+        if fit.stopreason[0] == 'Iteration limit reached':
+            print
+            '(WWW) poly_lsq: Iteration limit reached, result not reliable!'
+
+        # Results and errors
+        coeff = fit.beta[::-1]
+        err = fit.sd_beta[::-1]
+
+        return coeff, err
 
     def create_iv_overview(self, chip_id, flavor, specifics, main=False, **kwargs):
         self.mirror = []
@@ -841,37 +916,37 @@ class Chip_overview(object):
 
         elif 'LoadReg' in flavor:
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics, fit_length=[0, 15])
-            #self.dump_plotdata()
+            self.dump_plotdata()
 
-            #self.create_plot('V_out', chip_id)
-            #self.create_plot_rel('V_out', chip_id)
-            #self.create_plot('V_outpre', chip_id)
-            #self.create_plot_rel('V_outpre', chip_id)
-            #self.create_plot('V_ref', chip_id)
-            #self.create_plot_rel('V_ref', chip_id)
-            #self.create_plot('I_ref', chip_id)
-            #self.create_plot_rel('I_ref', chip_id)
-            #self.create_plot('V_offs', chip_id)
-            #self.create_plot_rel('V_offs', chip_id)
+            self.create_plot('V_out', chip_id)
+            self.create_plot_rel('V_out', chip_id)
+            self.create_plot('V_outpre', chip_id)
+            self.create_plot_rel('V_outpre', chip_id)
+            self.create_plot('V_ref', chip_id)
+            self.create_plot_rel('V_ref', chip_id)
+            self.create_plot('I_ref', chip_id)
+            self.create_plot_rel('I_ref', chip_id)
+            self.create_plot('V_offs', chip_id)
+            self.create_plot_rel('V_offs', chip_id)
 
-            #self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_col(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_col(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_col(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
+            self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
 
-            #self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
-            #self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
-            #self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
-            #self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
-            #self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
 
 
         else:
@@ -880,33 +955,33 @@ class Chip_overview(object):
             self.dump_plotdata()
 
             self.plot_iv_spread(chip=chip_id, specifics=specifics)
-            #self.plot_iv_spread(chip=chip_id, specifics=specifics, rel=True)
-            #self.create_plot('V_out', chip_id)
-            #self.create_plot_rel('V_out', chip_id)
-            #self.create_plot('V_outpre', chip_id)
-            #self.create_plot_rel('V_outpre', chip_id)
-            #self.create_plot('V_ref', chip_id)
-            #self.create_plot_rel('V_ref', chip_id)
-            #self.create_plot('I_ref', chip_id)
-            #self.create_plot_rel('I_ref', chip_id)
+            self.plot_iv_spread(chip=chip_id, specifics=specifics, rel=True)
+            self.create_plot('V_out', chip_id)
+            self.create_plot_rel('V_out', chip_id)
+            self.create_plot('V_outpre', chip_id)
+            self.create_plot_rel('V_outpre', chip_id)
+            self.create_plot('V_ref', chip_id)
+            self.create_plot_rel('V_ref', chip_id)
+            self.create_plot('I_ref', chip_id)
+            self.create_plot_rel('I_ref', chip_id)
 
-            #self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
-            #self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_col(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_col(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_col(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
-            #                  specifics=specifics)
-            #self.plot_iv_poly(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor)
-            #self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
-            #self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
+            self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_col(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor,
+                              specifics=specifics)
+            self.plot_iv_poly(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
             self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
-            #self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
-            #self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
 
 if __name__ == "__main__":
     root_path = os.getcwd()
