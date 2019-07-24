@@ -217,7 +217,7 @@ class Chip_overview(object):
         plt.close()
 
 
-    def plot_iv_col(self, filelist, name='V_in', data=None, chip='000', flavor='IV', specifics='', filename="file", log = True):
+    def plot_iv_col(self, filelist, name='V_in', data=None, chip='000', flavor='IV', specifics='', filename="file", log = False):
         scalex = 0.6
         iin_a = []
         varr = []
@@ -229,7 +229,10 @@ class Chip_overview(object):
             save_key = int(save_key)
             if save_key == 0 and log:
                 continue
-            doses.append(self.dose[save_key])
+            if flavor2 == 'TID':
+                doses.append(self.dose[save_key])
+            elif flavor2 == 'Temperatur':
+                doses.append(self.temp[save_key])
 
             datas = data[key]['data']
             iin, vin = [], []
@@ -250,43 +253,46 @@ class Chip_overview(object):
         vin = np.array(varr)
         dose = np.array(doses)
 
-        for i in range(2):
-            fig, ax = plt.subplots()
 
-            if i == 0:
-                lc = self.multiline(iin, vin, dose, norm=mplcolor.LogNorm(vmin=dose.min(), vmax=dose.max()), cmap='viridis', lw=0.15)
-            else:
-                lc = self.multiline(iin, vin, dose, cmap='viridis', lw=0.15)
-            axcb = fig.colorbar(lc)
+        fig, ax = plt.subplots()
 
-            if flavor == 'LoadReg':
-                ax.set_title('Load Regulation: ' + self.list_of_names[name]['title'])
-                ax.set_xlabel("Load Current / A")
-            else:
-                ax.set_xlabel("Input Current / A")
-                ax.set_title('Line Regulation: ' + self.list_of_names[name]['title'])
+        if log:
+            lc = self.multiline(iin, vin, dose, norm=mplcolor.LogNorm(vmin=dose.min(), vmax=dose.max()), cmap='viridis', lw=0.15)
+        else:
+            lc = self.multiline(iin, vin, dose, cmap='viridis', lw=0.15)
+        axcb = fig.colorbar(lc)
 
-            ax.axis([0, scalex, 0, 2.1])
-            ax.set_ylabel("Voltage / V")
+        if flavor == 'LoadReg':
+            ax.set_title('Load Regulation: ' + self.list_of_names[name]['title'])
+            ax.set_xlabel("Load Current / A")
+        else:
+            ax.set_xlabel("Input Current / A")
+            ax.set_title('Line Regulation: ' + self.list_of_names[name]['title'])
+
+        ax.axis([0, scalex, 0, 2.1])
+        ax.set_ylabel("Voltage / V")
+        if flavor2 == 'TID':
             axcb.set_label("TID / MRad")
+        elif flavor2 == 'Temperatur':
+            axcb.set_label("Temperature / °C")
 
-            plt.grid()
-            logging.info("Saving plot %s" % filename)
-            filepath = self.filepath + '/' + flavor + '/Colored'
-            if not os.path.exists(os.path.normpath(filepath)):
-                os.makedirs(os.path.normpath(filepath))
-            os.chdir(normpath(filepath))
-            try:
-                if i == 0:
-                    plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '_' + name + '_Colored_log.pdf')
-                else:
-                    plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '_' + name + '_Colored.pdf')
-            except:
-                logging.error("Plot %s could not be saved" % filename)
-                raise ValueError
-            logging.info("Finished.")
-            os.chdir(normpath(self.filepath))
-            plt.close()
+        plt.grid()
+        logging.info("Saving plot %s" % filename)
+        filepath = self.filepath + '/' + flavor + '/Colored'
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
+        try:
+            if log:
+                plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '_' + name + '_Colored_log.pdf')
+            else:
+                plt.savefig('Chip' + chip[-3:] + '_' + flavor + specifics + '_' + name + '_Colored.pdf')
+        except:
+            logging.error("Plot %s could not be saved" % filename)
+            raise ValueError
+        logging.info("Finished.")
+        os.chdir(normpath(self.filepath))
+        plt.close()
 
 
     def plot_iv_poly(self, filelist, name='V_in', data=None, chip='000', flavor='IV', filename="file"):
@@ -299,7 +305,7 @@ class Chip_overview(object):
         for key in filelist:
             save_k = key.split('_')
             save_key = save_k[0]
-            save_key = int(save_key)
+
 
             datas = data[key]['data']
             iin, vin = [], []
@@ -320,7 +326,11 @@ class Chip_overview(object):
                 p[0] = (fit_log[flavor]['run' + str(save_key)][name]['slope'])[0]
                 p[1] = (fit_log[flavor]['run' + str(save_key)][name]['offset'])[0]
 
-            label = self.list_of_names[name]['title'] + ' (' + str(self.dose[save_key]) + 'Mrad)'
+            if flavor2 == 'TID':
+                label = self.list_of_names[name]['title'] + ' (' + str(self.dose[int(save_key)]) + 'Mrad)'
+            elif flavor2 == 'Temperatur':
+                label = self.list_of_names[name]['title'] + ' (' + str(self.temp[int(save_key)]) + '°C)'
+
             ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.5, markersize='1', label='Data')
 
             max_x = max(iin) + 0.05
@@ -506,8 +516,12 @@ class Chip_overview(object):
         voffs_mean_err_s = np.array(self.voffs_means_err)[order]
 
         for i in range(len(x_axis_s)):
-            x_axis_c.append(self.dose[int(x_axis_s[i])])
-            x_err.append(self.dose[int(x_axis_s[i])]*0.2)
+            if flavor2 == 'TID':
+                x_axis_c.append(self.dose[int(x_axis_s[i])])
+                x_err.append(self.dose[int(x_axis_s[i])]*0.2)
+            elif flavor2 == 'Temperatur':
+                x_axis_c.append(self.temp[int(x_axis_s[i])])
+                x_err.append(self.temp[int(x_axis_s[i])] * 0.2)
 
         if rel:
             vin_effective_res_s = vin_effective_res_s / vin_effective_res_s[0]
@@ -523,7 +537,8 @@ class Chip_overview(object):
         legend_dict['Offset from Fit to V_offs'] = 'green'
         ax1.errorbar(x_axis_c, voffs_mean_s, voffs_mean_err_s, x_err, marker='.', fmt='o', linewidth=0.3, markersize='3', color='black', capsize=2, markeredgewidth=1, label='Mean Voffs')
         legend_dict['Mean Offset Voltage'] = 'black'
-        ax1.semilogx()
+        if flavor2 == 'TID':
+            ax1.semilogx()
 
         if not rel:
             ax2.axhline(0.8, color='orange')
@@ -533,10 +548,13 @@ class Chip_overview(object):
             ax1.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.9, 1.1])
             ax2.axis([min(x_axis_c) - min(x_axis_c) * 0.25, max(x_axis_c) + max(x_axis_c) * 0.25, 0.9, 1.1])
         else:
-            ax1.axis([min(x_axis_c)-min(x_axis_c)*0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.4, 1.1])
-            ax2.axis([min(x_axis_c) - min(x_axis_c) * 0.25, max(x_axis_c) + max(x_axis_c) * 0.25, 0.5, 1.2])
+            ax1.axis([min(x_axis_c)- np.sqrt(min(x_axis_c)**2) * 0.25, max(x_axis_c)+max(x_axis_c)*0.25, 0.4, 1.1])
+            ax2.axis([min(x_axis_c) - np.sqrt(min(x_axis_c)**2) * 0.25, max(x_axis_c) + max(x_axis_c) * 0.25, 0.5, 1.2])
 
-        ax1.set_xlabel("TID / Mrad")
+        if flavor2 == 'TID':
+            ax1.set_xlabel("TID / Mrad")
+        elif flavor2 == 'Temperatur':
+            ax1.set_xlabel("Temperature / °C")
 
         if rel:
             ax1.set_ylabel("Voltage / Voltage(0)")
@@ -592,7 +610,10 @@ class Chip_overview(object):
         else:
             ax1.set_title('Fit to Line Regulation: ' + self.list_of_names[name]['title'])
 
-        ax1.set_xlabel(flavor2 + ' / Mrad')
+        if flavor2 == 'TID':
+            ax1.set_xlabel(flavor2 + ' / Mrad')
+        elif flavor2 == 'Temperatur':
+            ax1.set_xlabel(flavor2 + ' / °C')
 
         ax1.set_ylabel("Slope  / V/A")
         ax2.set_ylabel("Voltage / V")
@@ -641,7 +662,10 @@ class Chip_overview(object):
         else:
                 ax1.set_title('Relative Fit to Line Regulation: ' + self.list_of_names[name]['title'])
 
-        ax1.set_xlabel(flavor2 + ' / Mrad')
+        if flavor2 == 'TID':
+            ax1.set_xlabel(flavor2 + ' / Mrad')
+        elif flavor2 == 'Temperatur':
+            ax1.set_xlabel(flavor2 + ' / °C')
 
         ax1.set_ylabel("V/V(0)")
         ax2.set_ylabel("Slope / V/A")
@@ -694,8 +718,12 @@ class Chip_overview(object):
         p_offs_err_s = np.array(p_offs_err)[order]
 
         for i in range(len(x_axis_s)):
-            x_axis_c.append(self.dose[int(x_axis_s[i])])
-            x_err.append(self.dose[int(x_axis_s[i])]*0.2)
+            if flavor2 == 'TID':
+                x_axis_c.append(self.dose[int(x_axis_s[i])])
+                x_err.append(self.dose[int(x_axis_s[i])]*0.2)
+            if flavor2 == 'Temperatur':
+                x_axis_c.append(self.temp[int(x_axis_s[i])])
+                x_err.append(self.temp[int(x_axis_s[i])]*0.2)
 
         if rel:
             p_mean_s = p_mean_s / p_mean_s[0]
@@ -710,12 +738,14 @@ class Chip_overview(object):
         color2 = 'green'
         color3 = 'blue'
         ax1.errorbar(x_axis_c, p_slope_s, p_slope_err_s, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color1, capsize= 2, markeredgewidth=1, label=label1)
-        ax1.semilogx()
+        if flavor2 == 'TID':
+            ax1.semilogx()
         self.legend_dict[label1] = color1
         ax2.errorbar(x_axis_c, p_mean_s, p_mean_err_s, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color2, capsize= 2, markeredgewidth=1, label=label2)
         self.legend_dict[label2] = color2
         ax2.errorbar(x_axis_c, p_offs_s, p_offs_err_s, x_err, marker='.', fmt='o', linewidth=0.1, markersize='1', color=color3, capsize= 2, markeredgewidth=1, label=label3)
-        ax2.semilogx()
+        if flavor2 == 'TID':
+            ax2.semilogx()
         self.legend_dict[label3] = color3
 
 
@@ -743,7 +773,7 @@ class Chip_overview(object):
         if new_max > scale2[1]:
             scale2[1] = new_max
 
-        new_min = (float(min(x_axis_c)) - float(min(x_axis_c)) * 0.1)
+        new_min = (float(min(x_axis_c)) - np.sqrt((float(min(x_axis_c)) * 0.1)**2))
         if new_min < scale2[0]:
             scale_x[0] = new_min
 
@@ -911,6 +941,7 @@ class Chip_overview(object):
             else:
                 self.filepath = root_path + "/output/" + chip_id + "/" + flavor2
                 os.chdir(normpath(self.filepath))
+                self.temp = [30.0, 15.0, 0.0, -15.0, -30.0, -40.0]
         else:
             self.filepath = root_path
             print('plotting')
@@ -949,6 +980,7 @@ class Chip_overview(object):
         elif 'LoadReg' in flavor:
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics, fit_length=[0, 15])
             self.dump_plotdata()
+
 
             self.create_plot('V_out', chip_id)
             self.create_plot_rel('V_out', chip_id)
@@ -1018,12 +1050,13 @@ class Chip_overview(object):
 
 
 
+
 if __name__ == "__main__":
     root_path = os.getcwd()
     chips = Chip_overview()
-    chip_id = 'BN016'
-    flavor2 = 'IV'
-    flavor = 'LoadReg'
+    chip_id = 'BN007'
+    flavor2 = 'Temperatur'
+    flavor = 'LineReg'
     specifics = ''
     chips.create_iv_overview(chip_id, flavor, specifics, main=True)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
