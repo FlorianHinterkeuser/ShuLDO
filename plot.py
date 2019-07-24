@@ -356,7 +356,7 @@ class Chip_overview(object):
             plt.close()
 
 
-    def plot_currentmirror(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = 50):
+    def plot_currentmirror(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = 50, measure_iext=True):
         fig = plt.figure(1)
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
@@ -365,27 +365,58 @@ class Chip_overview(object):
 
         for key in data.keys():
             datas = data[key]['data']
-            iin, vin, vext, current_mirror = [], [], [], []
-
+            iin, vin, vext, iext = [], [], [], []
+            diin, dvin, dvext, diext = [], [], [], []
             for row in datas:
                 iin.append((row[0]))
+                diin.append(row[5])
                 vin.append(row[1])
-                vext.append(row[5])
-            for x in range(0, len(vin)):
-                rext_current = vext[x] / 817
-                current_mirror.append((iin[x] - (rext_current * 2)) / rext_current)
+                dvin.append(row[6])
+                vext.append(row[2])
+                dvext.append(row[7])
+                iext.append(row[3])
+                diext.append(row[8])
 
-            ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='red',
+            iin_s = np.array(iin)
+            diin_s = np.array(diin)
+            vin_s = np.array(vin)
+            dvin_s = np.array(dvin)
+            vext_s = np.array(vext)
+            dvext_s = np.array(dvext)
+            iext_s = np.array(iext)
+            diext_s = np.array(diext)
+
+            if measure_iext:
+                cm_i = (iin_s - 2*iext_s)/iext_s
+                dcm_i = np.sqrt((diin_s/iext_s)**2 + ((iin_s*diext_s)/(iext_s**2))**2)
+
+            cm_v = (iin_s*800.0 - 2*vext_s)/vext_s
+            dcm_v = np.sqrt((diin_s*800.0/iext_s)**2 + ((iin_s*800.0*dvext_s)/(vext_s**2))**2 + (iin_s*0.3/vext_s)**2)
+
+            ax1.plot(iin_s, vin_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='red',
                      label='Input Voltage')
-            ax1.plot(iin, vext, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='green',
+            ax1.fill_between(iin_s, vin_s - dvin_s, vin_s + dvin_s, facecolors='tomato')
+
+            ax1.plot(iin_s, vext_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='green',
                      label='External Resistor Voltage')
-            ax2.plot(iin, current_mirror, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='black',
+            ax1.fill_between(iin_s, vext_s - dvext_s, vext_s + dvext_s, facecolors='lightgreen')
+
+            if measure_iext:
+                ax1.plot(iin_s, iext_s*800, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='blue', label='External Resistor Current')
+                ax1.fill_between(iin_s, iext_s*800 - diext_s*800, iext_s*800 + diext_s*800, facecolors='lightblue')
+                ax2.plot(iin_s, cm_i, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='black', label='Current Mirror')
+                ax2.fill_between(iin_s, cm_i - dcm_i, cm_i + dcm_i, facecolors='gray')
+
+
+            ax2.plot(iin_s, cm_v, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='purple',
                      label='Current Mirror')
+            #ax2.fill_between(iin_s, cm_v - dcm_v, cm_v + dcm_v, facecolors='magenta')
+
 
             x = np.polyfit(iin[-fit_length:], vin[-fit_length:], 1)
-            z = np.polyfit(iin, current_mirror[:], 1)
+            z = np.polyfit(iin, cm_i[:], 1)
             u_in = []
-            mirror_ratio = np.mean(current_mirror)
+            mirror_ratio = np.mean(cm_i)
             for i in range(len(iin)):
                 u_in.append(iin[i] * x[0] + x[1])
 
@@ -400,7 +431,7 @@ class Chip_overview(object):
         ax1.set_ylabel("Voltage / V")
         ax2.set_ylabel("Current Mirror Ratio")
 
-        legend_dict = {'Input Voltage': 'red', 'Current Mirror': 'black', 'Rext Voltage': 'green'}
+        legend_dict = {'Input Voltage': 'red', 'Current Mirror from Iext': 'black', 'Current Mirror from Vext': 'purple', 'Rext Voltage': 'green'}
         colors = legend_dict.values()
         labels = legend_dict.keys()
         lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
@@ -838,10 +869,11 @@ class Chip_overview(object):
             # self.plot_iv_spread(chip = chip_id, specifics = specifics)
         elif flavor == 'IV2':
             self.plot_iv2(data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
-
+        elif flavor == 'CM':
+            self.plot_currentmirror(data=collected_data, chip=chip_id, specifics=specifics)
         elif 'LoadReg' in flavor:
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics, fit_length=[0, 15])
-            #self.dump_plotdata()
+            self.dump_plotdata()
 
             #self.create_plot('V_out', chip_id)
             #self.create_plot_rel('V_out', chip_id)
@@ -904,16 +936,16 @@ class Chip_overview(object):
             #self.plot_iv_poly(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor)
             #self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
             #self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
-            self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
+            #self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
             #self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
             #self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
 
 if __name__ == "__main__":
     root_path = os.getcwd()
     chips = Chip_overview()
-    chip_id = 'BN004'
-    flavor2 = 'TID'
-    flavor = 'LineReg'
+    chip_id = 'BN016'
+    flavor2 = 'IV'
+    flavor = 'LoadReg'
     specifics = ''
     chips.create_iv_overview(chip_id, flavor, specifics, main=True)
 #        chips.create_current_mirror_overview(reg_flavor = flavor)
