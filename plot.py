@@ -980,6 +980,7 @@ class Chip_overview(object):
             self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
             self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
 
+
         else:
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics)
             self.dump_plotdata()
@@ -1013,6 +1014,8 @@ class Chip_overview(object):
             self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
             self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
             self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
+
+
 
 
 if __name__ == "__main__":
