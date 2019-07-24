@@ -45,7 +45,7 @@ class Misc(object):
         for i in range(0, len(device)):
             name_arr[i] = str(self.dut[device[i]].get_name())
             if 'Keithley' in name_arr[i] or 'KEITHLEY' in name_arr[i]:
-                vendor[i]= 'keithley'
+                vendor[i] = 'keithley'
                 if 'Model 2410' in name_arr[i] or "MODEL 2410" in name_arr[i]:
                     model[i] = str(2410)
                 elif 'Model 2400' in name_arr[i] or "MODEL 2400" in name_arr[i]:
@@ -58,6 +58,8 @@ class Misc(object):
                     model[i] = str(2230) + 'G'
                 elif 'Model 2634B' in name_arr[i]:
                     model[i] = str(2634) + 'B'
+                elif 'Model 2612B' in name_arr[i]:
+                    model[i] = str(2612) + 'B'
             else:
                 #raise RuntimeError('Something went wrong')
                 pass
@@ -122,7 +124,7 @@ class Misc(object):
             if self.typ[i] == 'keithley_2410' or self.typ[i] == 'keithley_2400' or self.typ[i] == 'keithley_2410':
                 for j in range(0, number):
                     measurement[j] = float(self.dut[device[i]].get_current().split(',')[1])
-            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2612B' or self.typ[i] == 'keithley_2634B':
                 for j in range(0, number):
                     measurement[j] = float(self.dut[device[i]].get_current(channel=channel))
             elif self.typ[i] == 'keithley_2230G':
@@ -152,7 +154,7 @@ class Misc(object):
                     measurement[j] = float(self.dut[device[i]].get_voltage().split(',')[0])
                     if measurement[j] != 0:
                         break
-        elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+        elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2612B' or self.typ[i] == 'keithley_2634B':
             for j in range(0, number):
                 measurement[j] = float(self.dut[device[i]].get_voltage(channel=channel).split(',')[0])
                 while measurement[j] == 0:
@@ -190,7 +192,7 @@ class Misc(object):
         measurement = np.empty(number)
         i = 0
 
-        if self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+        if self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2612B' or self.typ[i] == 'keithley_2634B':
             for j in range(0, number):
                 measurement[j] = float(self.dut[device].get_resistance(channel=channel))
         elif self.typ[i] == 'keithley_2000':
@@ -229,7 +231,7 @@ class Misc(object):
                         self.dut[device[i]].set_voltage_limit(0.01)
                         self.dut[device[i]].set_current(0)
                 set_mode [i] = str(self.dut[device[i]].get_source_mode())
-            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2612B' or self.typ[i] == 'keithley_2634B':
                 if 'VOLT' in mode:
                     self.dut[device[i]].source_volt(channel=channel)
                 elif 'CURR' in mode:
@@ -259,7 +261,7 @@ class Misc(object):
                 else:
                     return 'False'
                 self.dut[device[i]].off()
-            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B' or self.typ[i] == 'keithley_2612B':
                 self.dut[device[i]].reset(channel=channel)
             elif self.typ[i] == 'keithley_2230G':
                 self.dut[device[i]].reset(channel=channel)
