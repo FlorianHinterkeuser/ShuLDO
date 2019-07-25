@@ -2,7 +2,7 @@ transfer_layer:
   - name  : sm1
     type  : Serial
     init  :
-        port    : COM2
+        port    : /dev/ttyUSB1
         read_termination : "\n"
         baudrate        : 19200
 #        backend          : "@py"
@@ -12,27 +12,37 @@ transfer_layer:
   - name  : sm2
     type  : Serial
     init  :
-        port    : COM3
+        port    : /dev/ttyUSB2
         read_termination : "\n"
         baudrate        : 19200
 #        backend          : "@py"
 #        query_delay      : 0.01
 #        timeout          : 2000
 
-  - name  : sm3
-    type  : Serial
-    init  :
-        port    : COM4
-        read_termination : "\n"
-        baudrate        : 19200
+  - name: sm3
+    type: Serial
+    init:
+        port              : /dev/ttyUSB3
+        read_termination  : "\n"
+        baudrate          : 19200
 #        backend          : "@py"
 #        query_delay      : 0.01
 #        timeout          : 2000
 
-#  - name  : sm5
+#  - name  : mm1
 #    type  : Serial
 #    init  :
-#        port    : COM38
+#        port    : /dev/ttyUSB5
+#        read_termination : "\n"
+#        baudrate        : 19200
+#        backend          : "@py"
+#        query_delay      : 0.01
+#        timeout          : 2000
+
+#  - name  : mm2
+#    type  : Serial
+#    init  :
+#        port    : /dev/ttyUSB0
 #        read_termination : "\n"
 #        baudrate        : 19200
 #        backend          : "@py"
@@ -42,7 +52,7 @@ transfer_layer:
   - name     : Serial
     type     : Serial
     init     :
-        port     : COM37
+        port     : /dev/ttyUSB0
         read_termination : "\r\n"
         write_termination : "\n"
         baudrate : 19200
@@ -60,27 +70,33 @@ hw_drivers:
 
   - name      : Sourcemeter1
     type      : scpi
+    interface : sm1
+    init      :
+         device    : Keithley 2602A
+
+  - name      : Sourcemeter2
+    type      : scpi
     interface : sm2
     init      :
          device    : Keithley 2634B
 
-  - name      : Sourcemeter2
-    type      : scpi
-    interface : sm1
-    init      :
-         device    : Keithley 2602A
-         
-  - name      : Multimeter1
+  - name      : Sourcemeter3
     type      : scpi
     interface : sm3
     init      :
-         device    : Keithley 2410
-         
-#  - name      : Sourcemeter4
+        device     : Keithley 2612B
+
+#  - name      : Multimeter1
 #    type      : scpi
-#    interface : sm5
+#    interface : mm1
 #    init      :
-#         device    : Keithley 2410
+#         device    : Keithley 2000
+
+#  - name      : Multimeter2
+#    type      : scpi
+#    interface : mm2
+#    init      :
+#         device    : Keithley 2000
 
 registers:
   - name      : Fan
@@ -90,13 +106,13 @@ registers:
     arg_add   : { 'channel': 3 }
 
 
-  - name      : VDDD
+  - name      : VDD1
     type      : FunctionalRegister
     hw_driver : Powersupply
     arg_names : [ value, on ]
     arg_add   : { 'channel': 1 }
     
-  - name      : VDDA
+  - name      : VDD2
     type      : FunctionalRegister
     hw_driver : Powersupply
     arg_names : [ value, on ]

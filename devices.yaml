@@ -1,81 +1,32 @@
 transfer_layer:
-  - name  : sm1
+  - name  : xray
     type  : Serial
     init  :
-        port    : COM2
+        port    : /dev/ttyUSB0
+        read_termination : "\r"
+        baudrate        : 9600
+#        backend          : "@py"
+#        query_delay      : 0.01
+        timeout          : 2
+
+  - name  : mm1
+    type  : Serial
+    init  :
+        port    : /dev/ttyUSB5
         read_termination : "\n"
         baudrate        : 19200
 #        backend          : "@py"
 #        query_delay      : 0.01
 #        timeout          : 2000
 
-  - name  : sm2
-    type  : Serial
-    init  :
-        port    : COM3
-        read_termination : "\n"
-        baudrate        : 19200
-#        backend          : "@py"
-#        query_delay      : 0.01
-#        timeout          : 2000
-
-  - name  : sm3
-    type  : Serial
-    init  :
-        port    : COM4
-        read_termination : "\n"
-        baudrate        : 19200
-#        backend          : "@py"
-#        query_delay      : 0.01
-#        timeout          : 2000
-
-  - name  : sm4
-    type  : Serial
-    init  :
-        port    : COM5
-        read_termination : "\n"
-        baudrate        : 19200
-#        backend          : "@py"
-#        query_delay      : 0.01
-#        timeout          : 2000
-
-  - name  : sm5
-    type  : Serial
-    init  :
-        port    : COM38
-        read_termination : "\n"
-        baudrate        : 19200
-#        backend          : "@py"
-#        query_delay      : 0.01
-#        timeout          : 2000
 
 hw_drivers:
-  - name      : Sourcemeter1
-    type      : scpi
-    interface : sm1
-    init      :
-         device    : Keithley 2602A
+  - name      : xray_cabinet
+    type      : debyeflex3003
+    interface : xray
 
   - name      : Multimeter1
     type      : scpi
-    interface : sm2
+    interface : mm1
     init      :
          device    : Keithley 2000
-         
-  - name      : Sourcemeter2
-    type      : scpi
-    interface : sm3
-    init      :
-         device    : Keithley 2410
-      
-  - name      : Sourcemeter3
-    type      : scpi
-    interface : sm4
-    init      :
-         device    : Keithley 2410
-         
-  - name      : Sourcemeter4
-    type      : scpi
-    interface : sm5
-    init      :
-         device    : Keithley 2410

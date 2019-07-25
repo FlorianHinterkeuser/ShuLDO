@@ -181,7 +181,8 @@ class Chip_overview(object):
             self.fit_log[flavor]["run" + save_key]["V_offs"]["offset"] = [float(y[1]), float(y_err[1])]
             self.fit_log[flavor]["run" + save_key]["V_offs"]["slope"] = [float(y[0]), float(y_err[0])]
 
-        ax2.axis([0.1, scalex, scale2[0], scale2[1]])
+        ax2.axis([0, scalex, scale2[0], scale2[1]])
+        ax1.axis([0, scalex, 0, 2.1])
 
         if flavor == 'LoadReg':
             ax1.set_xlabel("Load Current / A")
@@ -274,7 +275,7 @@ class Chip_overview(object):
         if flavor2 == 'TID':
             axcb.set_label("TID / MRad")
         elif flavor2 == 'Temperatur':
-            axcb.set_label("Temperature / °C")
+            axcb.set_label("Temperature / *C")
 
         plt.grid()
         logging.info("Saving plot %s" % filename)
@@ -329,7 +330,7 @@ class Chip_overview(object):
             if flavor2 == 'TID':
                 label = self.list_of_names[name]['title'] + ' (' + str(self.dose[int(save_key)]) + 'Mrad)'
             elif flavor2 == 'Temperatur':
-                label = self.list_of_names[name]['title'] + ' (' + str(self.temp[int(save_key)]) + '°C)'
+                label = self.list_of_names[name]['title'] + ' (' + str(self.temp[int(save_key)]) + '*C)'
 
             ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.5, markersize='1', label='Data')
 
@@ -370,14 +371,18 @@ class Chip_overview(object):
             plt.close()
 
 
-    def plot_currentmirror(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = 50, measure_iext=True):
+    def analysis_currentmirror(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = 50, measure_iext=True):
         fig = plt.figure(1)
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
         ax1.axis([0, 1.2, 0, 2.1])
         ax2.axis([0, 1.2, 0, 1200])
 
+        fit_ranges = {'800': [6, 25], '700': [9, 28], '600': [9, 33], '500': [13, 38]}
+
         for key in data.keys():
+            save_k = key.split('_')
+            save_key = float(save_k[0])
             datas = data[key]['data']
             iin, vin, vext, iext = [], [], [], []
             diin, dvin, dvext, diext = [], [], [], []
@@ -404,8 +409,8 @@ class Chip_overview(object):
                 cm_i = (iin_s - 2*iext_s)/iext_s
                 dcm_i = np.sqrt((diin_s/iext_s)**2 + ((iin_s*diext_s)/(iext_s**2))**2)
 
-            cm_v = (iin_s*800.0 - 2*vext_s)/vext_s
-            dcm_v = np.sqrt((diin_s*800.0/iext_s)**2 + ((iin_s*800.0*dvext_s)/(vext_s**2))**2 + (iin_s*0.3/vext_s)**2)
+            cm_v = (iin_s*save_key - 2*vext_s)/vext_s
+            dcm_v = np.sqrt((diin_s*save_key/vext_s)**2 + ((iin_s*save_key*dvext_s)/(vext_s**2))**2 + (iin_s*0.3/vext_s)**2)
 
             ax1.plot(iin_s, vin_s, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='red',
                      label='Input Voltage')
@@ -424,28 +429,30 @@ class Chip_overview(object):
 
             ax2.plot(iin_s, cm_v, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='purple',
                      label='Current Mirror')
-            #ax2.fill_between(iin_s, cm_v - dcm_v, cm_v + dcm_v, facecolors='magenta')
+            ax2.fill_between(iin_s, cm_v - dcm_v, cm_v + dcm_v, facecolors='magenta')
 
+            self.fit_to_data(iin_s, vin_s, str(save_key),'V_in', fit_ranges[save_k[0]], cm=True)
+            self.fit_to_data(vext_s, iin_s, str(save_key), 'CM_V', fit_ranges[save_k[0]], cm=True)
+            self.fit_to_data(iext_s, iin_s, str(save_key), 'CM_I', fit_ranges[save_k[0]], cm=True)
 
-            x = np.polyfit(iin[-fit_length:], vin[-fit_length:], 1)
-            z = np.polyfit(iin, cm_i[:], 1)
-            u_in = []
-            mirror_ratio = np.mean(cm_i)
-            for i in range(len(iin)):
-                u_in.append(iin[i] * x[0] + x[1])
+        reff = []
+        rext = []
 
-            self.vin_fits_vdd.append([x[0], x[1]])
-            self.mirror.append(mirror_ratio)
-
-            #            ax1.plot(iin, u_in, linestyle='--', linewidth= 0.05, markersize = '.4', color='orange', label = 'Reff from input Voltage fit = %.2f Ohm, offset = %.2f V' % (x[0], x[1]))
-            #            ax1.plot(iin, offs, linestyle='--', linewidth= 0.05, markersize = '.4', color='cyan', label = 'Offset from measurement = %.2f V, Slope = %.2f V/A' % (offset_mean,y[0]))
-            logging.info("Current Mirror ratio is %s" % mirror_ratio)
+        for runs in self.fit_log[flavor]:
+            runs_save = runs[3:]
+            try:
+                rext.append(float(runs_save))
+            except:
+                logging.info('Skipped %s' % runs)
+                continue
+            reff.append(self.fit_log[flavor][runs]['V_in']['slope'][0])
+        self.fit_to_data(reff, rext, 'Analysis', 'CM_R', [0, len(reff)])
 
         ax1.set_xlabel("Input Current / A")
         ax1.set_ylabel("Voltage / V")
         ax2.set_ylabel("Current Mirror Ratio")
 
-        legend_dict = {'Input Voltage': 'red', 'Current Mirror from Iext': 'black', 'Current Mirror from Vext': 'purple', 'Rext Voltage': 'green'}
+        legend_dict = {'Input Voltage': 'red', 'Current Mirror from Iext': 'black', 'Current Mirror from Vext': 'purple', 'Rext Voltage': 'green', 'Iext*800 Ohm': 'blue'}
         colors = legend_dict.values()
         labels = legend_dict.keys()
         lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
@@ -462,6 +469,114 @@ class Chip_overview(object):
         logging.info("Finished CurrentMirror Plot.")
         plt.close()
 
+    def plot_currentmirror(self, data = None, chip = '000', specifics = '', filename = "file", fit_length = 50, measure_iext=True):
+        fit_log = yaml.load(open(self.name, 'r'))
+        x, x_W, CM_I, CM_V, CM_IW, CM_VW = [], [], [], [], [], []
+        dCM_I, dCM_V, dCM_IW, dCM_VW = [], [], [], []
+        R_eff = []
+        dR_eff= []
+
+        for runs in fit_log[flavor]:
+            try:
+                runs_save = runs[3:]
+                x.append(float(runs_save))
+            except:
+                print('skipped entry')
+                continue
+
+            CM_I.append(fit_log[flavor][runs]['CM_I']['slope'][0])
+            dCM_I.append(fit_log[flavor][runs]['CM_I']['slope'][1])
+            CM_V.append(fit_log[flavor][runs]['CM_V']['slope'][0])
+            dCM_V.append(fit_log[flavor][runs]['CM_V']['slope'][1])
+            R_eff.append(fit_log[flavor][runs]['V_in']['slope'][0])
+            dR_eff.append(fit_log[flavor][runs]['V_in']['slope'][1])
+
+        for key in data.keys():
+            save_k = key.split('_')
+            save_key = float(save_k[0])
+            datas = data[key]['data']
+
+            vext = datas[25][2]
+            dvext = datas[25][7]
+            iext = datas[25][3]
+            diext = datas[25][8]
+
+            cm_i = (0.5 - 2 * iext) / iext
+            dcm_i = np.sqrt((datas[25][5] / iext) ** 2 + ((0.5 * diext) / (iext ** 2)) ** 2)
+
+            cm_v = (0.5 * save_key - 2 * vext) / vext
+            dcm_v = np.sqrt((datas[25][5] * save_key / vext) ** 2 + ((0.5 * save_key * dvext) / (vext ** 2)) ** 2 + (0.5 * 0.3 / vext) ** 2)
+            x_W.append(save_key)
+            CM_IW.append(cm_i)
+            dCM_IW.append(dcm_i)
+            CM_VW.append(cm_v)
+            dCM_VW.append(dcm_v)
+
+        order = np.argsort(x)
+        CM_Is = np.array(CM_I)[order]
+        dCM_Is = np.array(dCM_I)[order]
+        CM_Vs = np.array(CM_V)[order]
+        dCM_Vs = np.array(dCM_V)[order]
+        R_effs = np.array(R_eff)[order]
+        dR_effs = np.array(dR_eff)[order]
+        xs = np.array(x)[order]
+
+        order = np.argsort(x_W)
+        CM_VWs = np.array(CM_VW)[order]
+        dCM_VWs = np.array(dCM_VW)[order]
+        CM_IWs = np.array(CM_IW)[order]
+        dCM_IWs = np.array(dCM_IW)[order]
+        x_Ws = np.array(x_W)[order]
+
+        fig = plt.figure(1)
+        ax1 = fig.add_subplot(111)
+
+        legend_dict = {}
+
+        ax1.errorbar(xs, CM_Vs, dCM_Vs, 0.3, marker='.', fmt='o', linewidth=0.3,
+                     markersize='3', color='blue', capsize=2, markeredgewidth=1, label='Offset from Vin')
+        legend_dict['from V_ext'] = 'blue'
+
+        ax1.errorbar(xs, CM_Is, dCM_Is, 0.3, marker='.', fmt='o', linewidth=0.3,
+                     markersize='3', color='green', capsize=2, markeredgewidth=1, label='Voffs fit offset')
+        legend_dict['from I_ext'] = 'green'
+
+        ax1.errorbar(xs, xs/R_effs, xs*dR_effs/(R_effs*R_effs), 0.3, marker='.', fmt='o', linewidth=0.3,
+                     markersize='3', color='black', capsize=2, markeredgewidth=1, label='Mean Voffs')
+        legend_dict['R_ext/R_eff'] = 'black'
+
+        ax1.errorbar(x_Ws, CM_IWs, dCM_IWs, 0.3, marker='.', fmt='o', linewidth=0.3,
+                     markersize='3', color='olive', capsize=2, markeredgewidth=1, label='Mean Voffs')
+        legend_dict['from I_ext at Working Point I_in = 0.6A'] = 'olive'
+
+        ax1.errorbar(x_Ws, CM_VWs, dCM_VWs, 0.3, marker='.', fmt='o', linewidth=0.3,
+                     markersize='3', color='purple', capsize=2, markeredgewidth=1, label='Mean Voffs')
+        legend_dict['from V_ext at Working Point I_in = 0.6A'] = 'purple'
+
+        ax1.set_xlabel("R_ext / Ohm")
+        ax1.set_ylabel("Current Mirror Factor k")
+
+        ax1.set_title('Current Mirror')
+
+        colors = legend_dict.values()
+        labels = legend_dict.keys()
+        lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+
+        plt.legend(lines, labels, loc=3)
+        plt.grid()
+        plt.tight_layout()
+
+        filepath = self.filepath
+        if not os.path.exists(os.path.normpath(filepath)):
+            os.makedirs(os.path.normpath(filepath))
+        os.chdir(normpath(filepath))
+
+        plt.savefig("CurrentMirror" + chip[-3:] + "_" + flavor + ".pdf")
+
+        os.chdir(normpath(self.filepath))
+
+        plt.close()
+        plt.figure()
 
     def plot_iv_spread(self, chip='000', specifics='', rel=False):
         fit_log = yaml.load(open(self.name, 'r'))
@@ -521,7 +636,7 @@ class Chip_overview(object):
                 x_err.append(self.dose[int(x_axis_s[i])]*0.2)
             elif flavor2 == 'Temperatur':
                 x_axis_c.append(self.temp[int(x_axis_s[i])])
-                x_err.append(self.temp[int(x_axis_s[i])] * 0.2)
+                x_err.append(1)
 
         if rel:
             vin_effective_res_s = vin_effective_res_s / vin_effective_res_s[0]
@@ -554,7 +669,7 @@ class Chip_overview(object):
         if flavor2 == 'TID':
             ax1.set_xlabel("TID / Mrad")
         elif flavor2 == 'Temperatur':
-            ax1.set_xlabel("Temperature / °C")
+            ax1.set_xlabel("Fridge Temperature / *C")
 
         if rel:
             ax1.set_ylabel("Voltage / Voltage(0)")
@@ -563,7 +678,7 @@ class Chip_overview(object):
             ax1.set_title('Relative offset changes and effective resistance')
         else:
             ax1.set_ylabel("Voltage / V")
-            ax2.set_ylabel("Resistance / Ω")
+            ax2.set_ylabel("Resistance / Ohm")
 
             ax1.set_title('Fits to Offset and effective Resistance')
 
@@ -572,7 +687,7 @@ class Chip_overview(object):
         lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
 
         plt.legend(lines, labels, loc=3)
-        plt.grid()
+        ax1.grid()
         plt.tight_layout()
 
         filepath = self.filepath + '/' + flavor + '/Fits'
@@ -599,11 +714,11 @@ class Chip_overview(object):
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
         scale_x = [1.0, 2.0]
-        scale1 = [0.1, 0.01]
-        scale2 = [0.5, 0.]
+        scale2 = [0.1, 0.01]
+        scale1 = [0.5, 0.]
         self.legend_dict = {}
 
-        self.plot_from_fit_log(ax1, ax2, scale1, scale2, scale_x, name)
+        self.plot_from_fit_log(ax2, ax1, scale2, scale1, scale_x, name)
 
         if flavor == 'LoadReg':
             ax1.set_title('Fit to Load Regulation: ' + self.list_of_names[name]['title'])
@@ -613,10 +728,10 @@ class Chip_overview(object):
         if flavor2 == 'TID':
             ax1.set_xlabel(flavor2 + ' / Mrad')
         elif flavor2 == 'Temperatur':
-            ax1.set_xlabel(flavor2 + ' / °C')
+            ax1.set_xlabel('Fridge' + flavor2 + ' / *C')
 
-        ax1.set_ylabel("Slope  / V/A")
-        ax2.set_ylabel("Voltage / V")
+        ax2.set_ylabel("Slope  / V/A")
+        ax1.set_ylabel("Voltage / V")
         ax1.axis([scale_x[0], scale_x[1], scale1[0], scale1[1]])
         ax2.axis([scale_x[0], scale_x[1], scale2[0], scale2[1]])
 
@@ -625,7 +740,7 @@ class Chip_overview(object):
         lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
 
         plt.legend(lines, labels, loc=2)
-        plt.grid()
+        ax1.grid()
         plt.tight_layout()
 
         filepath = self.filepath + '/' + flavor + '/Fits'
@@ -665,7 +780,7 @@ class Chip_overview(object):
         if flavor2 == 'TID':
             ax1.set_xlabel(flavor2 + ' / Mrad')
         elif flavor2 == 'Temperatur':
-            ax1.set_xlabel(flavor2 + ' / °C')
+            ax1.set_xlabel(flavor2 + ' / *C')
 
         ax1.set_ylabel("V/V(0)")
         ax2.set_ylabel("Slope / V/A")
@@ -692,7 +807,7 @@ class Chip_overview(object):
         plt.close()
 
 
-    def plot_from_fit_log(self, ax1, ax2, scale1, scale2, scale_x, name, rel = False):
+    def plot_from_fit_log(self, ax1, ax2, scale1, scale2, scale_x, name, rel = False, cm=False):
         fit_log = yaml.load(open(self.name, 'r'))
         p_slope, p_mean, p_offs, x_axis, x_axis_c = [], [], [], [], []
         p_slope_err, p_mean_err, p_offs_err = [], [], []
@@ -700,7 +815,11 @@ class Chip_overview(object):
 
         for runs in fit_log[flavor]:
             runs_save = runs[3:]
-            x_axis.append(int(runs_save))
+            try:
+                x_axis.append(int(runs_save))
+            except:
+                logging.info('skipped %s' % runs)
+                continue
             p_slope.append(fit_log[flavor][runs][name]['slope'][0])
             p_mean.append(fit_log[flavor][runs][name]['mean'][0])
             p_offs.append(fit_log[flavor][runs][name]['offset'][0])
@@ -723,7 +842,7 @@ class Chip_overview(object):
                 x_err.append(self.dose[int(x_axis_s[i])]*0.2)
             if flavor2 == 'Temperatur':
                 x_axis_c.append(self.temp[int(x_axis_s[i])])
-                x_err.append(self.temp[int(x_axis_s[i])]*0.2)
+                x_err.append(2)
 
         if rel:
             p_mean_s = p_mean_s / p_mean_s[0]
@@ -782,8 +901,8 @@ class Chip_overview(object):
             scale_x[1] = new_max
 
 
-    def fit_to_data(self, x, y, save_key, name, fit_length):
-        if flavor == 'LoadReg':
+    def fit_to_data(self, x, y, save_key, name, fit_length, cm=False):
+        if flavor == 'LoadReg' or cm:
             fit_res, fit_res_err = self.poly_lsq(x[fit_length[0]:fit_length[1]], y[fit_length[0]:fit_length[1]], 1)
             fit_mean = np.mean(y[fit_length[0]:fit_length[1]])
             fit_mean_err = np.std(y[fit_length[0]:fit_length[1]])
@@ -791,6 +910,10 @@ class Chip_overview(object):
             fit_res, fit_res_err = self.poly_lsq(x[fit_length[0]:], y[fit_length[0]:], 1)
             fit_mean = np.mean(y[fit_length[0]:])
             fit_mean_err = np.std(y[fit_length[0]:])
+
+        if cm and name == 'CM_V':
+            fit_res[0] *= float(save_key)
+            fit_res_err[0] *= float(save_key)
 
         try:
             self.fit_log[flavor]
@@ -807,7 +930,8 @@ class Chip_overview(object):
         except:
             self.fit_log[flavor]["run" + save_key][name] = {}
 
-        self.fit_log[flavor]["run" + save_key][name]["mean"] = [float(fit_mean), float(fit_mean_err)]
+        if not cm:
+            self.fit_log[flavor]["run" + save_key][name]["mean"] = [float(fit_mean), float(fit_mean_err)]
         self.fit_log[flavor]["run" + save_key][name]["offset"] = [float(fit_res[1]), float(fit_res_err[1])]
         self.fit_log[flavor]["run" + save_key][name]["slope"] = [float(fit_res[0]), float(fit_res_err[0])]
 
@@ -976,22 +1100,23 @@ class Chip_overview(object):
         elif flavor == 'IV2':
             self.plot_iv2(data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
         elif flavor == 'CM':
+            self.analysis_currentmirror(data=collected_data, chip=chip_id, specifics=specifics)
             self.plot_currentmirror(data=collected_data, chip=chip_id, specifics=specifics)
+            self.dump_plotdata()
         elif 'LoadReg' in flavor:
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics, fit_length=[0, 15])
             self.dump_plotdata()
 
-
             self.create_plot('V_out', chip_id)
-            self.create_plot_rel('V_out', chip_id)
+
             self.create_plot('V_outpre', chip_id)
-            self.create_plot_rel('V_outpre', chip_id)
+
             self.create_plot('V_ref', chip_id)
-            self.create_plot_rel('V_ref', chip_id)
+
             self.create_plot('I_ref', chip_id)
-            self.create_plot_rel('I_ref', chip_id)
+
             self.create_plot('V_offs', chip_id)
-            self.create_plot_rel('V_offs', chip_id)
+
 
             self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor,
                               specifics=specifics)
@@ -1012,22 +1137,19 @@ class Chip_overview(object):
             self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
             self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
 
-
         else:
             self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics)
             self.dump_plotdata()
 
             self.plot_iv_spread(chip=chip_id, specifics=specifics)
 
-            self.plot_iv_spread(chip=chip_id, specifics=specifics, rel=True)
             self.create_plot('V_out', chip_id)
-            self.create_plot_rel('V_out', chip_id)
+
             self.create_plot('V_outpre', chip_id)
-            self.create_plot_rel('V_outpre', chip_id)
+
             self.create_plot('V_ref', chip_id)
-            self.create_plot_rel('V_ref', chip_id)
+
             self.create_plot('I_ref', chip_id)
-            self.create_plot_rel('I_ref', chip_id)
 
             self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
             self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
@@ -1047,15 +1169,11 @@ class Chip_overview(object):
             self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
             self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
 
-
-
-
-
 if __name__ == "__main__":
     root_path = os.getcwd()
     chips = Chip_overview()
-    chip_id = 'BN007'
-    flavor2 = 'Temperatur'
+    chip_id = 'RD53B_SLDO_BN007'
+    flavor2 = 'IV_NTC1'
     flavor = 'LineReg'
     specifics = ''
     chips.create_iv_overview(chip_id, flavor, specifics, main=True)

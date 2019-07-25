@@ -43,7 +43,7 @@ dut = Dut('devices.yaml')
 dut.init()
 xray = 'xray_cabinet'
 
-t_target = 174000
+t_target = 152800
 t_ntc = 300
 t_ref = t_target-t_ntc
 tube_voltage = 50 #kV
