@@ -145,6 +145,7 @@ class Chip_overview(object):
                      label='Reference Current')
             if flavor2 == 'IV_NTC1':
                 legend_dict['V_refpre'] = 'brown'
+                fit_length = [76, 199]
             else:
                 legend_dict['I_ref Sense'] = 'brown'
             if specifics != '':
@@ -334,6 +335,8 @@ class Chip_overview(object):
                 label = self.list_of_names[name]['title'] + ' (' + str(self.dose[int(save_key)]) + 'Mrad)'
             elif flavor2 == 'Temperatur':
                 label = self.list_of_names[name]['title'] + ' (' + str(self.temp[int(save_key)]) + '*C)'
+            else:
+                label = self.list_of_names[name]['title']
 
             ax1.plot(iin, vin, linestyle='-', marker='.', linewidth=0.5, markersize='1', label='Data')
 
@@ -1095,11 +1098,16 @@ class Chip_overview(object):
         for i, files in enumerate(filelist):
             collected_data[files] = self.file_to_array(files)
             # self.scan_parameter.append(i)
-        if flavor == 'IV':
-            # self.plot_iv(data = collected_data, chip = chip_id, flavor=flavor, specifics = specifics)
-            # self.plot_currentmirror(data = collected_data, chip=chip_id, specifics = specifics)
-            self.plot_iv(data=collected_data, chip=chip_id, specifics=specifics)
-            # self.plot_iv_spread(chip = chip_id, specifics = specifics)
+        if flavor2 == 'IV_NTC1':
+            self.plot_ntc(data=collected_data, chip=chip_id, specifics=specifics)
+            self.dump_plotdata()
+
+            self.plot_iv_poly(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
+            self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
         elif flavor == 'IV2':
             self.plot_iv2(data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
         elif flavor == 'CM':
