@@ -143,7 +143,10 @@ class Chip_overview(object):
 
             ax1.plot(iin, iref, linestyle='-', marker='.', linewidth=0.1, markersize='1', color='brown',
                      label='Reference Current')
-            legend_dict['I_ref Sense'] = 'brown'
+            if flavor2 == 'IV_NTC1':
+                legend_dict['V_refpre'] = 'brown'
+            else:
+                legend_dict['I_ref Sense'] = 'brown'
             if specifics != '':
                 ax1.fill_between(iin, direfl, direfh, facecolors='indianred')
 
@@ -186,10 +189,10 @@ class Chip_overview(object):
 
         if flavor == 'LoadReg':
             ax1.set_xlabel("Load Current / A")
-            ax1.set_title("IV-Overview: Load Regulation Mode")
+            ax1.set_title("IV-Overview: Load Regulation")
         else:
             ax1.set_xlabel("Input Current / A")
-            ax1.set_title("IV-Overview: Line Regulation Mode")
+            ax1.set_title("IV-Overview: Line Regulation")
 
         ax1.set_ylabel("Voltage / V")
         ax2.set_ylabel("NTC Temperature")
