@@ -227,6 +227,9 @@ class Chip_overview(object):
         iin_a = []
         varr = []
         doses = []
+        labeling = False
+
+        fig, ax = plt.subplots()
 
         for key in filelist:
             save_k = key.split('_')
@@ -238,6 +241,24 @@ class Chip_overview(object):
                 doses.append(self.dose[save_key])
             elif flavor2 == 'Temperatur':
                 doses.append(self.temp[save_key])
+            elif specifics == 'OVP':
+                a = key.split('OVP_')
+                b = a[1]
+                c = b.split('V')
+
+                if c[0] == 'ref':
+                    datas = data[key]['data']
+                    iin, vin = [], []
+
+                    for row in datas:
+                        iin.append((row[0]))
+                        vin.append(row[self.list_of_names[name]['loc']])
+                    ax.plot(iin, vin, linestyle='-', marker=None, linewidth=0.15, markersize='0', color='red',
+                     label='OVP: V_ref')
+                    labeling = True
+                    continue
+                else:
+                    doses.append(float(c[0]))
 
             datas = data[key]['data']
             iin, vin = [], []
@@ -258,13 +279,10 @@ class Chip_overview(object):
         vin = np.array(varr)
         dose = np.array(doses)
 
-
-        fig, ax = plt.subplots()
-
         if log:
-            lc = self.multiline(iin, vin, dose, norm=mplcolor.LogNorm(vmin=dose.min(), vmax=dose.max()), cmap='viridis', lw=0.15)
+            lc = self.multiline(iin, vin, dose, ax=ax, norm=mplcolor.LogNorm(vmin=dose.min(), vmax=dose.max()), cmap='viridis', lw=0.15)
         else:
-            lc = self.multiline(iin, vin, dose, cmap='viridis', lw=0.15)
+            lc = self.multiline(iin, vin, dose, ax=ax, cmap='viridis', lw=0.15)
         axcb = fig.colorbar(lc)
 
         if flavor == 'LoadReg':
@@ -280,6 +298,9 @@ class Chip_overview(object):
             axcb.set_label("TID / MRad")
         elif flavor2 == 'Temperatur':
             axcb.set_label("Temperature / *C")
+
+        if labeling:
+            plt.legend()
 
         plt.grid()
         logging.info("Saving plot %s" % filename)
@@ -643,6 +664,9 @@ class Chip_overview(object):
             elif flavor2 == 'Temperatur':
                 x_axis_c.append(self.temp[int(x_axis_s[i])])
                 x_err.append(1)
+            else:
+                x_axis_c.append(x_axis_s[i])
+                x_err = None
 
         if rel:
             vin_effective_res_s = vin_effective_res_s / vin_effective_res_s[0]
@@ -754,7 +778,7 @@ class Chip_overview(object):
             os.makedirs(os.path.normpath(filepath))
         os.chdir(normpath(filepath))
 
-        plt.savefig(chip_id + "_" + flavor + "_Fit_" + name +".pdf")
+        plt.savefig('Chip' + chip_id[-3:] + "_" + flavor + "_Fit_" + name +".pdf")
 
         os.chdir(normpath(self.filepath))
 
@@ -806,7 +830,7 @@ class Chip_overview(object):
             os.makedirs(os.path.normpath(filepath))
         os.chdir(normpath(filepath))
 
-        plt.savefig(chip_id + "_" + flavor + "_Fit_relative_" + name +".pdf")
+        plt.savefig('Chip' + chip_id[-3:] + "_" + flavor + "_Fit_relative_" + name +".pdf")
 
         os.chdir(normpath(self.filepath))
 
@@ -846,9 +870,12 @@ class Chip_overview(object):
             if flavor2 == 'TID':
                 x_axis_c.append(self.dose[int(x_axis_s[i])])
                 x_err.append(self.dose[int(x_axis_s[i])]*0.2)
-            if flavor2 == 'Temperatur':
+            elif flavor2 == 'Temperatur':
                 x_axis_c.append(self.temp[int(x_axis_s[i])])
                 x_err.append(2)
+            else:
+                x_axis_c.append(x_axis_s[i])
+                x_err = None
 
         if rel:
             p_mean_s = p_mean_s / p_mean_s[0]
@@ -1108,8 +1135,15 @@ class Chip_overview(object):
             self.plot_iv_poly(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor)
             self.plot_iv_poly(filelist, name='I_ref', data=collected_data, chip=chip_id, flavor=flavor)
             self.plot_iv_poly(filelist, name='V_outpre', data=collected_data, chip=chip_id, flavor=flavor)
-        elif flavor == 'IV2':
-            self.plot_iv2(data=collected_data, chip=chip_id, flavor=flavor, specifics=specifics)
+        elif flavor2 == 'IV':
+            self.plot_iv_col(filelist, name='V_in', data=collected_data, chip=chip_id, flavor=flavor,
+                             specifics=specifics)
+            self.plot_iv_col(filelist, name='V_out', data=collected_data, chip=chip_id, flavor=flavor,
+                             specifics=specifics)
+            self.plot_iv_col(filelist, name='V_ref', data=collected_data, chip=chip_id, flavor=flavor,
+                             specifics=specifics)
+            self.plot_iv_col(filelist, name='V_offs', data=collected_data, chip=chip_id, flavor=flavor,
+                             specifics=specifics)
         elif flavor == 'CM':
             self.analysis_currentmirror(data=collected_data, chip=chip_id, specifics=specifics)
             self.plot_currentmirror(data=collected_data, chip=chip_id, specifics=specifics)
