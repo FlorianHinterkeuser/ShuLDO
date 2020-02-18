@@ -58,6 +58,8 @@ class Misc(object):
                     model[i] = str(2230) + 'G'
                 elif 'Model 2634B' in name_arr[i]:
                     model[i] = str(2634) + 'B'
+                elif 'Model 2612B' in name_arr[i]:
+                    model[i] = str(2612) + 'B'
             else:
                 #raise RuntimeError('Something went wrong')
                 pass
@@ -83,7 +85,7 @@ class Misc(object):
                     if abs(abs(measurement[i])/abs(current[i])-1) <= 0.01:
                         break
                 current[i] = measurement[i]
-            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B' or self.typ[i] == 'keithley_2612B':
                 current[i] = float(self.dut[device[i]].get_current(channel = channel))
                 for j in range(0, 10):                                                            #Debouncing to ensure stable measurement
                     measurement[i] = float(self.dut[device[i]].get_current(channel=channel))
@@ -120,7 +122,7 @@ class Misc(object):
                     if abs(abs(measurement[i])/abs(voltage[i]+0.0001)-1) <= 0.01:
                         break
                     voltage[i] = measurement[i]
-            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B' or self.typ[i] == 'keithley_2612B':
                 voltage[i] = float(self.dut[device[i]].get_voltage(channel=channel))
                 while voltage[i] == 0:
                     voltage[i] = float(self.dut[device[i]].get_voltage().split(',')[0])
@@ -185,7 +187,7 @@ class Misc(object):
                         self.dut[device[i]].set_voltage_limit(0.01)
                         self.dut[device[i]].set_current(0)
                 set_mode [i] = str(self.dut[device[i]].get_source_mode())
-            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B' or self.typ[i] == 'keithley_2612B':
                 if 'VOLT' in mode:
                     self.dut[device[i]].source_volt(channel=channel)
                 elif 'CURR' in mode:
@@ -213,15 +215,15 @@ class Misc(object):
                     self.dut[device[i]].set_voltage_limit(0.01)
                     self.dut[device[i]].set_current(0)
                 else:
-                    print "ops"
+                    print("ops")
                     return 'False'
                 self.dut[device[i]].off()
-            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B':
+            elif self.typ[i] == 'keithley_2602A' or self.typ[i] == 'keithley_2634B' or self.typ[i] == 'keithley_2612B':
                 self.dut[device[i]].reset(channel=channel)
             elif self.typ[i] == 'keithley_2230G':
                 self.dut[device[i]].reset(channel=channel)
             else:
-                print "Reset data not found"    
+                print("Reset data not found")
         return set_mode
 
     def dummy(self,n):
@@ -239,8 +241,8 @@ if __name__ == '__main__':
     '''
     dut = Dut('devices.yaml')
     dut.init()
-    print dut['Sourcemeter1'].get_name()
-    print dut['Sourcemeter2'].get_name()
+    print(dut['Sourcemeter1'].get_name())
+    print(dut['Sourcemeter2'].get_name())
 
     misc = Misc(dut=dut)
 #    misc.reset(1, 'Sourcemeter1')                       #misc.reset(channel, device*)

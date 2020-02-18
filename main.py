@@ -3,51 +3,65 @@ Created on 26.09.2016
 
 @author: Florian
 '''
-import time
-import logging
-import csv
-import matplotlib.pyplot as plt
-import os.path
-import threading
-import numpy as np
-import plot as plot
-#from RD53A_IV import IV
-#import RD53A_IV
-import SLDO as SLDO
 
-from scan_misc import Misc
+import os.path
+import time
+#import SLDO as SLDO
+#import plot
 from basil.dut import Dut
-start = time.clock()
-chip_id='RD53B_SLDO_BN016'
+import SLDO as SLDO
+import Xray_auto as XRay
+
+
+#===============================================================================
+# def measure(run_number = 0):
+# #    run_number = 0 #SET +1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#     
+#     flavor='IV' #switch Vin!!
+#     filepath = "/Xray_warm/"  + "/" + flavor
+#     
+#     if not os.path.exists(os.path.normpath(os.getcwd() + filepath)):
+#         os.makedirs(os.path.normpath(os.getcwd() + filepath))
+#     os.chdir(os.path.normpath(os.getcwd() + filepath))
+#     
+#     iv = SLDO.IV()
+#     iv.measure_temp()
+#     iv.scan_IV("IV", 1.2, 1, 50, 0.025, run_number=run_number, remote_sense=False)
+#     time.sleep(5)
+#     iv.scan_load_reg("LoadReg", 0.6, 0.6, 50, 0.025, run_number = run_number)
+#     iv.working_point()
+#===============================================================================
+def measure(run_number = 0):
+    dut.init()
+    
+    iv = SLDO.IV(dut = dut)
+    iv.measure_temp()
+    iv.scan_IV("IV", 1., 1, 50, 0.025, run_number=run_number, remote_sense=False)
+    time.sleep(5)
+    iv.scan_load_reg("LoadReg", 0.6, 0.6, 50, 0.025, run_number = run_number)
+    iv.working_point(0.5)
+
+    dut.close()
+    
+def irradiate(current = 51, timer = 60):
+    machine.init()
+    xray = XRay.Xray(dut = machine)
+
+    xray.set_tube(current, timer)
+
+    machine.close()
+    
+dut = Dut('devices.yaml')
+machine = Dut("xray.yaml")
+
 flavor='IV' #switch Vin!!
-filepath = "/output/" + chip_id + "/" + flavor
-fileName = flavor + "_" + chip_id + "_"
+filepath = "/Xray_warm/"  + "/" + flavor
+
 if not os.path.exists(os.path.normpath(os.getcwd() + filepath)):
     os.makedirs(os.path.normpath(os.getcwd() + filepath))
 os.chdir(os.path.normpath(os.getcwd() + filepath))
-print os.getcwd()
-iv = SLDO.IV()
-iv.shutdown_tti()
-n_runs = 1
-for i in range(0,n_runs):
-    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i, remote_sense= False, OVP_on=True, OVP_limit=0.45)
-    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i+n_runs, remote_sense= False, OVP_on=True, OVP_limit=0.5)
-    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i+2*n_runs, remote_sense= False, OVP_on=True, OVP_limit=0.55)
-    iv.scan_IV(fileName, 2, 1, 50, 0.02, run_number = i+3*n_runs, remote_sense= False, OVP_on=True, OVP_limit=0.6)
-iv.working_point()
-iv.shutdown_tti()
-stop = time.clock()
-runtime = stop-start
-print "Runtime: %f" % runtime
+#measure(run_number= 2)
 
-#===============================================================================
-# def FileAuf(filename):
-#     print filename
-#     logging.info("auf")
-#     with open(filename, 'wb') as outfile:
-#         f = csv.writer(outfile, quoting=csv.QUOTE_NONNUMERIC)
-#         f.writerow(['Input current [A]', 'Input voltage [V]', 'Output voltage [V]'])
-#     
-# for i in range(0,10):
-#     FileAuf(filename = "test" + str(i))
-#===============================================================================
+
+irradiate(51, 2640)
+measure(24)
