@@ -1,0 +1,15 @@
+transfer_layer:
+  - name  : sm1
+    type  : Serial
+    init  :
+        port    : COM4
+        read_termination : "\n"
+        baudrate        : 19200
+
+hw_drivers:
+
+  - name      : Sourcemeter1
+    type      : scpi
+    interface : sm1
+    init      :
+         device    : Keithley 2612B
