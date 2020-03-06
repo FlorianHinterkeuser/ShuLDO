@@ -2,7 +2,7 @@ transfer_layer:
   - name  : sm1
     type  : Serial
     init  :
-        port    : COM4
+        port    : /dev/ttyUSB0
         read_termination : "\n"
         baudrate        : 19200
 
